@@ -1,0 +1,859 @@
+<title>Relevé d'orientation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Taux d'accès, insertion et salaires par formation, uniquement à partir de données publiques sourcées et datées.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Bitter:wght@600;700&display=swap">
+<style>
+/* Mise en page : un "relevé" administratif. Bandeau de neutralité, recherche, puis liste à gauche / fiche à droite (une colonne sur mobile). */
+:root {
+  --bg: #f3f6f7;
+  --surface: #ffffff;
+  --ink: #132028;
+  --ink-2: #3e4c56;
+  --muted: #56646e;
+  --line: #d3dbe0;
+  --accent: #0b5d7a;
+  --accent-ink: #ffffff;
+  --accent-soft: #e0edf2;
+  --flag-bg: #fff3d1;
+  --flag-ink: #5c3f00;
+  --flag-line: #e6c56a;
+  --err-bg: #fde8e7;
+  --err-ink: #7a1715;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --m1: #104281; --m2: #256abf; --m3: #5598e7; --m4: #86b6ef;
+  --font-display: "Bitter", Georgia, "Times New Roman", serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data: "Atkinson Hyperlegible Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e161b; --surface: #152129; --ink: #e5edf1; --ink-2: #b9c6ce; --muted: #9aa9b2; --line: #2b3b45;
+    --accent: #6cc3e0; --accent-ink: #062330; --accent-soft: #17323f;
+    --flag-bg: #3a2d0c; --flag-ink: #f5dc93; --flag-line: #7a6222;
+    --err-bg: #3d1716; --err-ink: #ffc9c6;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --m1: #cde2fb; --m2: #86b6ef; --m3: #3987e5; --m4: #1c5cab;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e161b; --surface: #152129; --ink: #e5edf1; --ink-2: #b9c6ce; --muted: #9aa9b2; --line: #2b3b45;
+  --accent: #6cc3e0; --accent-ink: #062330; --accent-soft: #17323f;
+  --flag-bg: #3a2d0c; --flag-ink: #f5dc93; --flag-line: #7a6222;
+  --err-bg: #3d1716; --err-ink: #ffc9c6;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --m1: #cde2fb; --m2: #86b6ef; --m3: #3987e5; --m4: #1c5cab;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1rem; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.skip { position: absolute; left: -9999px; top: 8px; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; z-index: 50; border-radius: var(--r); }
+.skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--font-data); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* En-tête */
+.top { border-bottom: 1px solid var(--line); background: var(--surface); }
+.top .wrap { padding-block: 14px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.brand { display: flex; gap: 10px; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+.brand svg { flex: none; }
+.mode { display: flex; gap: 8px; align-items: center; font-size: .9rem; color: var(--ink-2); flex-wrap: wrap; }
+
+/* Bandeau de valeur */
+.hero .wrap { padding-block: 28px 20px; display: grid; gap: 18px; }
+.hero p.lead { font-size: 1.12rem; color: var(--ink-2); max-width: 62ch; }
+.pledges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.pledges li { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); font-size: .95rem; }
+.pledges strong { display: block; }
+.pledges svg { flex: none; margin-top: 2px; color: var(--accent); }
+
+.flag { display: flex; gap: 10px; align-items: flex-start; background: var(--flag-bg); color: var(--flag-ink); border: 1px solid var(--flag-line); border-radius: var(--r); padding: 10px 14px; font-size: .92rem; }
+.flag svg { flex: none; margin-top: 3px; }
+.badge-ex { display: inline-block; font-family: var(--font-data); font-size: .7rem; font-weight: 600; letter-spacing: .06em; background: var(--flag-bg); color: var(--flag-ink); border: 1px solid var(--flag-line); padding: 1px 6px; border-radius: 3px; vertical-align: middle; }
+.badge { display: inline-block; font-size: .78rem; border: 1px solid var(--line); color: var(--ink-2); padding: 1px 8px; border-radius: 999px; }
+
+/* Recherche */
+form.search { display: grid; gap: 12px; }
+.field { display: grid; gap: 4px; }
+label { font-weight: 700; font-size: .92rem; }
+input[type="search"], select { font: inherit; color: var(--ink); background: var(--surface); border: 1.5px solid var(--muted); border-radius: var(--r); padding: 10px 12px; min-height: 46px; width: 100%; }
+.btn { font: inherit; font-weight: 700; cursor: pointer; border-radius: var(--r); min-height: 46px; padding: 8px 16px; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.small { min-height: 36px; padding: 4px 12px; font-size: .9rem; }
+.btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.filters .field { min-width: 0; flex: 1 1 180px; }
+.search-row { display: flex; align-items: end; gap: 8px; }
+.search-row .field { flex: 1; min-width: 0; }
+.suggest { font-size: .9rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.suggest button { font: inherit; font-size: .88rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+
+/* Zone principale */
+main .wrap { padding-block: 8px 120px; display: grid; gap: 20px; }
+.layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.results-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.results-head p { font-size: .88rem; color: var(--muted); }
+ul.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.res { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.res[aria-current="true"] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.res > button.open { all: unset; cursor: pointer; padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.res > button.open:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.res .t { font-weight: 700; }
+.res .e { font-size: .9rem; color: var(--ink-2); }
+.res .k { display: flex; gap: 12px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); margin-top: 4px; }
+.res .k b { color: var(--ink); font-family: var(--font-data); font-weight: 600; }
+.res .cmp { display: flex; align-items: center; padding: 8px 10px; border-left: 1px solid var(--line); }
+.cmp-toggle { font: inherit; font-size: .82rem; cursor: pointer; border: 1.5px solid var(--line); background: transparent; color: var(--ink-2); border-radius: var(--r); padding: 6px 8px; min-height: 40px; }
+.cmp-toggle[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+
+/* Fiche */
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 22px; min-width: 0; }
+.sheet-head { display: grid; gap: 6px; }
+.sheet-head .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sheet-head .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.block { display: grid; gap: 14px; border-top: 1px solid var(--line); padding-top: 18px; }
+.block-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi { display: grid; gap: 2px; align-content: start; }
+.kpi .v { font-family: var(--font-data); font-size: 1.7rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi .v.big { font-size: 2.6rem; color: var(--accent); }
+.kpi .l { font-size: .88rem; color: var(--ink-2); }
+.plain { background: var(--accent-soft); border-radius: var(--r); padding: 10px 14px; font-size: .97rem; }
+.nd { font-family: var(--font-body); font-size: .95rem; font-weight: 400; color: var(--muted); font-style: italic; }
+.missing { border: 1.5px dashed var(--line); border-radius: var(--r); padding: 12px 14px; color: var(--ink-2); display: flex; gap: 10px; align-items: flex-start; }
+.missing svg { flex: none; margin-top: 3px; color: var(--muted); }
+.scope { font-size: .9rem; color: var(--ink-2); }
+.scope b { color: var(--ink); }
+
+/* Barres empilées */
+.stack-group { display: grid; gap: 6px; }
+.stack-group .cap { font-size: .9rem; font-weight: 700; }
+.stack { display: flex; gap: 2px; height: 18px; background: var(--surface); }
+.stack span { display: block; height: 100%; min-width: 2px; }
+.stack span:first-child { border-radius: 4px 0 0 4px; }
+.stack span:last-child { border-radius: 0 4px 4px 0; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .86rem; color: var(--ink-2); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.legend b { font-family: var(--font-data); color: var(--ink); font-weight: 600; }
+
+/* Courbe d'emploi : barres verticales */
+.emp { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; align-items: end; height: 150px; border-bottom: 1px solid var(--line); padding-top: 22px; max-width: 420px; }
+.emp .col { position: relative; height: 100%; display: flex; justify-content: center; align-items: flex-end; }
+.emp .bar { width: 70%; max-width: 46px; background: var(--accent); border-radius: 4px 4px 0 0; }
+.emp .val { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--font-data); font-size: .85rem; font-weight: 600; }
+.emp-x { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; max-width: 420px; font-size: .8rem; color: var(--muted); text-align: center; }
+
+/* Métiers */
+ul.jobs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+ul.jobs li { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
+ul.jobs .code { font-family: var(--font-data); font-size: .78rem; color: var(--muted); }
+
+/* Source */
+.src { font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; border-left: 3px solid var(--line); padding-left: 10px; }
+.src a { color: var(--ink-2); }
+details.how { font-size: .92rem; color: var(--ink-2); }
+details.how summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+details.how p { margin-top: 6px; max-width: 65ch; }
+
+/* Erreurs, statut */
+.alert { background: var(--err-bg); color: var(--err-ink); border-radius: var(--r); padding: 12px 14px; }
+.empty { border: 1.5px dashed var(--line); border-radius: var(--r); padding: 18px; color: var(--ink-2); display: grid; gap: 8px; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--muted); }
+.status-dot.ok { background: #0ca30c; }
+.status-dot.ko { background: #d03b3b; }
+
+/* Comparateur */
+.tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 2px solid var(--accent); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tray .wrap { padding-block: 10px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.tray p { font-size: .92rem; min-width: 0; }
+.tray .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: .82rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 10px; display: inline-flex; align-items: center; gap: 4px; max-width: 260px; }
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip button { font: inherit; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; }
+.compare { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 14px; }
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .93rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--font-display); font-size: 1rem; }
+tbody th { font-weight: 400; color: var(--ink-2); width: 30%; }
+td.n { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* Pourquoi / pied */
+.why { display: grid; gap: 12px; }
+.why table { min-width: 680px; }
+footer { border-top: 1px solid var(--line); background: var(--surface); }
+footer .wrap { padding-block: 24px 110px; display: grid; gap: 14px; font-size: .9rem; color: var(--ink-2); }
+footer ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+@media (prefers-reduced-motion: no-preference) { .emp .bar { transition: height .3s ease; } }
+@media (max-width: 520px) { .search-row { flex-wrap: wrap; } .search-row .btn { width: 100%; } .sheet, .compare { padding: 16px; } .kpi .v.big { font-size: 2.2rem; } }
+</style>
+
+<div lang="fr" id="app-root">
+<a class="skip" href="#q">Aller à la recherche</a>
+<a class="skip" href="#fiche">Aller à la fiche formation</a>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 19h3v-5H7zm5.5 0h3V9h-3zM18 19h3v-8h-3z" fill="currentColor"/></svg>
+      <span>Relevé d'orientation</span>
+    </div>
+    <div class="mode" role="group" aria-labelledby="mode-label">
+      <span id="mode-label">Données&nbsp;:</span>
+      <button type="button" class="btn ghost small" id="mode-sample" aria-pressed="true">Exemple intégré</button>
+      <button type="button" class="btn ghost small" id="mode-live" aria-pressed="false" disabled>Parcoursup en direct</button>
+      <span id="live-status" class="num" aria-live="polite"><span class="status-dot"></span> test de connexion…</span>
+    </div>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div style="display:grid;gap:10px">
+      <p class="eyebrow">Données publiques · Aucun classement payant</p>
+      <h1 id="hero-title">Avant de choisir une formation, regardez ses résultats.</h1>
+      <p class="lead">Chances d'admission, emploi après le diplôme, salaire réel et métiers visés, réunis sur une seule fiche. Chaque chiffre vient de l'État (Parcoursup, InserSup, InserJeunes, ONISEP) et affiche sa source et sa date.</p>
+    </div>
+    <ul class="pledges" aria-label="Nos engagements de neutralité">
+      <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15 15 5" stroke="currentColor" stroke-width="2"/></svg><span><strong>Aucune école ne paie pour apparaître</strong>Pas de publicité, pas de mise en avant sponsorisée. Résultats triés par ordre alphabétique ou selon votre critère.</span></li>
+      <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h9l3 3v11H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9h6M7 12h6M7 15h4" stroke="currentColor" stroke-width="1.6"/></svg><span><strong>Chaque chiffre est sourcé et daté</strong>Lien vers le jeu de données d'origine et sa licence ouverte.</span></li>
+      <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="2"/></svg><span><strong>Vos coordonnées ne sont jamais demandées</strong>Aucun compte, aucun cookie, aucune mesure d'audience.</span></li>
+    </ul>
+    <div class="flag" id="sample-flag" role="note">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 6v4M8 11.5v1.2" stroke="currentColor" stroke-width="1.6"/></svg>
+      <p><strong>Prototype : chiffres d'exemple.</strong> Les établissements et les valeurs affichés sont fictifs mais respectent la structure et les ordres de grandeur des jeux officiels. Ils sont marqués <span class="badge-ex">EXEMPLE</span>. Le bouton « Parcoursup en direct » interroge la vraie API quand votre navigateur peut la joindre.</p>
+    </div>
+
+    <form class="search" id="search-form" role="search" aria-label="Rechercher une formation">
+      <div class="search-row">
+        <div class="field">
+          <label for="q">Formation, métier, établissement ou ville</label>
+          <input type="search" id="q" name="q" autocomplete="off" placeholder="ex. informatique, infirmier, droit, Lyon…" aria-describedby="q-help">
+        </div>
+        <button class="btn" type="submit">Rechercher</button>
+      </div>
+      <div class="filters">
+        <div class="field">
+          <label for="f-type">Type de formation</label>
+          <select id="f-type">
+            <option value="">Tous les types</option>
+            <option>BUT</option><option>BTS</option><option>Licence</option><option>PASS</option>
+            <option>CPGE</option><option>IFSI</option><option>École d'ingénieurs</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-sort">Trier par</label>
+          <select id="f-sort">
+            <option value="alpha">Ordre alphabétique</option>
+            <option value="acces-desc">Taux d'accès, du plus ouvert au plus sélectif</option>
+            <option value="acces-asc">Taux d'accès, du plus sélectif au plus ouvert</option>
+            <option value="salaire-desc">Salaire médian, du plus élevé au plus bas</option>
+            <option value="emploi-desc">Emploi à 12 mois, du plus élevé au plus bas</option>
+          </select>
+        </div>
+      </div>
+      <p id="q-help" class="suggest">Essayez&nbsp;:
+        <button type="button" data-q="informatique">informatique</button>
+        <button type="button" data-q="infirmier">infirmier</button>
+        <button type="button" data-q="droit">droit</button>
+        <button type="button" data-q="ingénieur">ingénieur</button>
+        <button type="button" data-q="commerce">commerce</button>
+      </p>
+    </form>
+  </div>
+</section>
+
+<main id="main">
+  <div class="wrap">
+    <div id="global-alert" aria-live="assertive"></div>
+    <div class="layout">
+      <section aria-labelledby="res-title">
+        <div class="results-head">
+          <h2 id="res-title" style="font-size:1.15rem">Formations</h2>
+          <p id="res-count" aria-live="polite"></p>
+        </div>
+        <ul class="results" id="results"></ul>
+      </section>
+      <section id="fiche" class="sheet" aria-live="polite" tabindex="-1" aria-label="Fiche formation"></section>
+    </div>
+
+    <section id="compare" class="compare" aria-labelledby="cmp-title" hidden tabindex="-1"></section>
+
+    <section class="why" aria-labelledby="why-title">
+      <h2 id="why-title">Pourquoi un site de plus&nbsp;?</h2>
+      <p style="max-width:70ch;color:var(--ink-2)">Les bonnes données existent déjà, mais elles sont dispersées. Voici ce que fait chaque outil et ce qu'il laisse de côté.</p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparaison des outils existants">
+        <table>
+          <thead><tr><th scope="col">Outil</th><th scope="col">Ce qu'il fait bien</th><th scope="col">Ce qui manque</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="https://www.parcoursup.gouv.fr" rel="noopener" target="_blank">Parcoursup</a></th><td>Données officielles d'admission : taux d'accès, profil des admis, fiche par formation.</td><td>Peu d'information sur l'emploi et les salaires après le diplôme. On compare difficilement plusieurs formations.</td></tr>
+            <tr><th scope="row"><a href="https://www.onisep.fr" rel="noopener" target="_blank">ONISEP</a></th><td>Catalogue complet des formations et des métiers, rédaction neutre et pédagogique.</td><td>Peu de chiffres de résultats (admission, insertion, salaire) sur les fiches.</td></tr>
+            <tr><th scope="row"><a href="https://www.inserjeunes.education.gouv.fr" rel="noopener" target="_blank">InserJeunes</a></th><td>Insertion officielle des CAP, bacs pro et BTS, par établissement.</td><td>Ne couvre pas licences, BUT et écoles. Ni chances d'admission, ni salaires.</td></tr>
+            <tr><th scope="row"><a href="https://diplomeo.com" rel="noopener" target="_blank">Diplomeo</a></th><td>Interface simple, avis d'étudiants, beaucoup d'écoles privées.</td><td>Acteur privé financé en partie par les écoles (mise en relation, visibilité). Chiffres rarement sourcés ou datés.</td></tr>
+            <tr><th scope="row"><strong>Relevé d'orientation</strong></th><td colspan="2">Réunit admission, insertion, salaires et métiers sur une fiche, avec un comparateur. Chaque chiffre renvoie à sa source publique. Aucun revenu venant des établissements.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <h2 style="font-size:1.1rem">Sources et licences</h2>
+    <ul id="sources-list"></ul>
+    <p><strong>Vie privée (RGPD).</strong> Ce site ne dépose aucun cookie, ne mesure pas l'audience et ne demande aucune donnée personnelle. Votre sélection de formations reste dans la page et disparaît à la fermeture. En mode « Parcoursup en direct », seul le texte recherché est envoyé à l'API publique du ministère (data.enseignementsup-recherche.gouv.fr).</p>
+    <p><strong>Méthode.</strong> Un taux d'accès élevé ne veut pas dire que la formation est facile à réussir. Les chiffres d'insertion portent parfois sur la filière au niveau national et non sur l'établissement : la fiche le précise à chaque fois.</p>
+  </div>
+</footer>
+
+<div class="tray" id="tray" hidden>
+  <div class="wrap">
+    <p><strong id="tray-count">0</strong> formation(s) sélectionnée(s) sur 3</p>
+    <div class="chips" id="tray-chips"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn small" type="button" id="tray-go">Comparer</button>
+      <button class="btn ghost small" type="button" id="tray-clear">Tout retirer</button>
+    </div>
+  </div>
+</div>
+<p class="visually-hidden" id="sr-msg" aria-live="polite"></p>
+</div>
+
+<script>
+(function () {
+"use strict";
+document.documentElement.lang = "fr";
+
+/* ------------------------------------------------------------------
+   1. Registre des sources : chaque chiffre affiché pointe vers l'une d'elles.
+   ------------------------------------------------------------------ */
+var API_BASE = "https://data.enseignementsup-recherche.gouv.fr/api/explore/v2.1";
+var PARCOURSUP_DATASET = "fr-esr-parcoursup";
+var LO = { nom: "Licence Ouverte / Open Licence 2.0 (Etalab)", url: "https://www.etalab.gouv.fr/licence-ouverte-open-licence/" };
+
+var SOURCES = {
+  parcoursup: {
+    nom: "Parcoursup : vœux et admissions", producteur: "Ministère de l'Enseignement supérieur (SIES)",
+    url: "https://data.enseignementsup-recherche.gouv.fr/explore/dataset/fr-esr-parcoursup/",
+    licence: LO, millesime: "Session 2024", maj: null
+  },
+  insersup: {
+    nom: "InserSup : insertion des diplômés du supérieur", producteur: "Ministère de l'Enseignement supérieur (SIES)",
+    url: "https://data.enseignementsup-recherche.gouv.fr/explore/dataset/fr-esr-insersup/",
+    licence: LO, millesime: "Diplômés 2021-2022", maj: null
+  },
+  inserjeunes: {
+    nom: "InserJeunes : insertion des sortants de BTS", producteur: "DEPP et Dares",
+    url: "https://www.inserjeunes.education.gouv.fr",
+    licence: LO, millesime: "Sortants 2022", maj: null
+  },
+  onisep: {
+    nom: "ONISEP : fiches métiers (codes ROME)", producteur: "ONISEP",
+    url: "https://opendata.onisep.fr",
+    licence: { nom: "licence indiquée sur chaque jeu de données ONISEP", url: "https://opendata.onisep.fr" },
+    millesime: "Référentiel 2024", maj: null
+  }
+};
+
+/* ------------------------------------------------------------------
+   2. Jeu d'exemple. Valeurs FICTIVES, structure calquée sur les jeux officiels.
+      emploi = taux d'emploi salarié en France à N mois après le diplôme (%).
+   ------------------------------------------------------------------ */
+var SAMPLE = [
+ { id:"but-info", type:"BUT", intitule:"BUT Informatique", etab:"IUT de Tours-Val-de-Loire", ville:"Tours", statut:"Public", selective:true,
+   ps:{capa:112, voeux:3960, acces:27, bac:{g:82,t:17,p:1}, mention:{tb:21,b:36,ab:31,s:12}, boursiers:19, femmes:13, academie:71},
+   ins:{src:"insersup", perimetre:"National, DUT Informatique (ancien diplôme remplacé par le BUT)", promo:"Diplômés 2021", emploi:{6:61,12:74,18:80,30:86}, salaire:1780, stable:71, poursuite:82,
+        note:"Le BUT a délivré ses premiers diplômes en 2024 : ses chiffres d'insertion propres ne sont pas encore publiés. On affiche donc ceux de l'ancien DUT."},
+   metiers:[{c:"M1805",n:"Développeur ou développeuse informatique"},{c:"M1801",n:"Administrateur ou administratrice systèmes et réseaux"},{c:"M1810",n:"Technicien ou technicienne d'exploitation informatique"}] },
+ { id:"bts-sio", type:"BTS", intitule:"BTS Services informatiques aux organisations, option SLAM", etab:"Lycée Marie-Curie", ville:"Lyon", statut:"Public", selective:true,
+   ps:{capa:30, voeux:1240, acces:41, bac:{g:30,t:44,p:26}, mention:{tb:6,b:22,ab:38,s:34}, boursiers:34, femmes:11, academie:88},
+   ins:{src:"inserjeunes", perimetre:"Établissement (sortants de BTS)", promo:"Sortants 2022", emploi:{6:44,12:56,24:63}, salaire:null, salaireRaison:"InserJeunes ne publie pas de salaire.", stable:48, poursuite:51},
+   metiers:[{c:"M1805",n:"Développeur ou développeuse informatique"},{c:"M1806",n:"Chargé ou chargée d'assistance en systèmes d'information"},{c:"I1401",n:"Technicien ou technicienne de maintenance informatique"}] },
+ { id:"lic-info", type:"Licence", intitule:"Licence Informatique", etab:"Université de Tours-Val-de-Loire", ville:"Tours", statut:"Public", selective:false,
+   ps:{capa:260, voeux:3100, acces:89, bac:{g:93,t:6,p:1}, mention:{tb:12,b:25,ab:34,s:29}, boursiers:31, femmes:17, academie:79},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés de licence 2021 sortis du supérieur", emploi:{6:52,12:63,18:68,30:74}, salaire:1650, stable:58, poursuite:87,
+        note:"La plupart des diplômés continuent en master. Ces chiffres concernent ceux qui ont arrêté après la licence."},
+   metiers:[{c:"M1805",n:"Développeur ou développeuse informatique"},{c:"M1802",n:"Expert ou experte en systèmes d'information"},{c:"K2107",n:"Professeur ou professeure de mathématiques ou d'informatique (après un master)"}] },
+ { id:"lic-droit", type:"Licence", intitule:"Licence Droit", etab:"Université Rhône-Métropole", ville:"Lyon", statut:"Public", selective:false,
+   ps:{capa:1150, voeux:14800, acces:74, bac:{g:96,t:3,p:1}, mention:{tb:16,b:27,ab:31,s:26}, boursiers:27, femmes:69, academie:72},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés de licence 2021 sortis du supérieur", emploi:{6:41,12:52,18:58,30:66}, salaire:1590, stable:49, poursuite:90,
+        note:"Les métiers du droit (avocat, magistrat, notaire) demandent au moins un master puis un examen ou un concours."},
+   metiers:[{c:"K1903",n:"Avocat ou avocate"},{c:"K1902",n:"Juriste"}] },
+ { id:"lic-psycho", type:"Licence", intitule:"Licence Psychologie", etab:"Université Rhône-Métropole", ville:"Lyon", statut:"Public", selective:false,
+   ps:{capa:620, voeux:9800, acces:52, bac:{g:94,t:5,p:1}, mention:{tb:14,b:28,ab:33,s:25}, boursiers:26, femmes:82, academie:69},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés de licence 2021 sortis du supérieur", emploi:{6:38,12:49,18:55,30:61}, salaire:1520, stable:42, poursuite:89,
+        note:"Le titre de psychologue exige un master de psychologie."},
+   metiers:[{c:"K1104",n:"Psychologue"},{c:"K1207",n:"Éducateur ou éducatrice spécialisé(e)"},{c:"K1201",n:"Conseiller ou conseillère en action sociale"}] },
+ { id:"pass", type:"PASS", intitule:"PASS, parcours d'accès spécifique santé", etab:"Université de Tours-Val-de-Loire", ville:"Tours", statut:"Public", selective:false,
+   ps:{capa:900, voeux:7900, acces:83, bac:{g:99,t:1,p:0}, mention:{tb:52,b:29,ab:13,s:6}, boursiers:18, femmes:70, academie:85},
+   ins:null, insRaison:"Le PASS est une année d'accès aux études de santé : il ne mène pas directement à un emploi. L'indicateur utile serait la part d'étudiants admis ensuite en médecine, maïeutique, odontologie, pharmacie ou kinésithérapie. Chaque université la publie à sa façon ; elle n'est pas encore disponible dans un jeu de données national.",
+   alerte:"Taux d'accès élevé ne veut pas dire entrée facile en médecine : la sélection a lieu en fin d'année.",
+   metiers:[{c:"J1102",n:"Médecin"},{c:"J1202",n:"Pharmacien ou pharmacienne"},{c:"J1104",n:"Sage-femme"},{c:"J1103",n:"Chirurgien-dentiste"},{c:"J1404",n:"Masseur-kinésithérapeute"}] },
+ { id:"ifsi", type:"IFSI", intitule:"Diplôme d'État d'infirmier", etab:"IFSI du CHU de Tours-Val-de-Loire", ville:"Tours", statut:"Public", selective:true,
+   ps:{capa:140, voeux:6200, acces:21, bac:{g:58,t:31,p:11}, mention:{tb:9,b:24,ab:37,s:30}, boursiers:41, femmes:86, academie:92},
+   ins:{src:"insersup", perimetre:"National, diplômés infirmiers", promo:"Diplômés 2021", emploi:{6:93,12:96,18:97,30:97}, salaire:2080, stable:74, poursuite:6,
+        note:"Le salaire inclut les primes (nuit, week-end) selon les services."},
+   metiers:[{c:"J1506",n:"Infirmier ou infirmière"},{c:"J1507",n:"Puériculteur ou puéricultrice"},{c:"J1505",n:"Infirmier ou infirmière scolaire"}] },
+ { id:"cpge-mpsi", type:"CPGE", intitule:"CPGE MPSI, maths, physique et sciences de l'ingénieur", etab:"Lycée Sophie-Germain", ville:"Lyon", statut:"Public", selective:true,
+   ps:{capa:48, voeux:2700, acces:24, bac:{g:100,t:0,p:0}, mention:{tb:78,b:19,ab:3,s:0}, boursiers:14, femmes:23, academie:58},
+   ins:null, insRaison:"Une classe prépa prépare aux concours des grandes écoles. L'insertion se mesure à la sortie de l'école intégrée. L'indicateur utile serait le taux d'intégration en école, que chaque lycée publie sans format commun.",
+   metiers:[{c:"H1206",n:"Ingénieur ou ingénieure recherche et développement"},{c:"K2108",n:"Enseignant-chercheur ou enseignante-chercheuse"},{c:"M1803",n:"Directeur ou directrice des systèmes d'information"}] },
+ { id:"inge", type:"École d'ingénieurs", intitule:"Cycle ingénieur post-bac (5 ans)", etab:"Institut d'ingénierie de Rennes", ville:"Rennes", statut:"Public", selective:true,
+   ps:{capa:260, voeux:11500, acces:12, bac:{g:99,t:1,p:0}, mention:{tb:64,b:28,ab:7,s:1}, boursiers:22, femmes:32, academie:38},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés ingénieurs 2021", emploi:{6:84,12:91,18:93,30:95}, salaire:2820, stable:86, poursuite:9},
+   metiers:[{c:"H1206",n:"Ingénieur ou ingénieure recherche et développement"},{c:"H2502",n:"Ingénieur ou ingénieure de production"},{c:"H1502",n:"Ingénieur ou ingénieure qualité"}] },
+ { id:"but-gea", type:"BUT", intitule:"BUT Gestion des entreprises et des administrations", etab:"IUT de Rennes-Atlantique", ville:"Rennes", statut:"Public", selective:true,
+   ps:{capa:168, voeux:4400, acces:38, bac:{g:71,t:26,p:3}, mention:{tb:10,b:31,ab:38,s:21}, boursiers:28, femmes:61, academie:83},
+   ins:{src:"insersup", perimetre:"National, DUT GEA (ancien diplôme remplacé par le BUT)", promo:"Diplômés 2021", emploi:{6:58,12:70,18:76,30:83}, salaire:1690, stable:66, poursuite:79,
+        note:"Premiers diplômés du BUT en 2024 : on affiche les chiffres de l'ancien DUT."},
+   metiers:[{c:"M1203",n:"Comptable"},{c:"M1204",n:"Contrôleur ou contrôleuse de gestion"},{c:"M1501",n:"Assistant ou assistante ressources humaines"}] },
+ { id:"staps", type:"Licence", intitule:"Licence STAPS, sciences et techniques des activités physiques et sportives", etab:"Université de Rennes-Atlantique", ville:"Rennes", statut:"Public", selective:false,
+   ps:{capa:450, voeux:8600, acces:34, bac:{g:88,t:10,p:2}, mention:{tb:13,b:29,ab:35,s:23}, boursiers:25, femmes:33, academie:80},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés de licence 2021 sortis du supérieur", emploi:{6:47,12:59,18:65,30:72}, salaire:1560, stable:47, poursuite:84},
+   metiers:[{c:"G1204",n:"Éducateur ou éducatrice sportif(ve)"},{c:"K2107",n:"Professeur ou professeure d'EPS (après un master)"},{c:"D1214",n:"Vendeur ou vendeuse en articles de sport"}] },
+ { id:"bts-mco", type:"BTS", intitule:"BTS Management commercial opérationnel", etab:"Lycée Olympe-de-Gouges", ville:"Rennes", statut:"Privé sous contrat", selective:true,
+   ps:{capa:35, voeux:1600, acces:58, bac:{g:18,t:47,p:35}, mention:{tb:4,b:18,ab:40,s:38}, boursiers:39, femmes:54, academie:91},
+   ins:{src:"inserjeunes", perimetre:"Établissement (sortants de BTS)", promo:"Sortants 2022", emploi:{6:51,12:62,24:68}, salaire:null, salaireRaison:"InserJeunes ne publie pas de salaire.", stable:45, poursuite:44},
+   metiers:[{c:"D1301",n:"Manager ou manageuse de magasin"},{c:"D1502",n:"Chef ou cheffe de rayon"},{c:"D1106",n:"Vendeur ou vendeuse en alimentation"}] },
+ { id:"lic-eco", type:"Licence", intitule:"Licence Économie et gestion", etab:"Université de Rennes-Atlantique", ville:"Rennes", statut:"Public", selective:false,
+   ps:{capa:540, voeux:7200, acces:81, bac:{g:92,t:7,p:1}, mention:{tb:15,b:30,ab:32,s:23}, boursiers:24, femmes:46, academie:77},
+   ins:{src:"insersup", perimetre:"Établissement", promo:"Diplômés de licence 2021 sortis du supérieur", emploi:{6:null,12:55,18:null,30:null}, salaire:null, salaireRaison:"Effectif trop faible : chiffre masqué par le secret statistique.", stable:null, poursuite:91,
+        note:"Peu de diplômés arrêtent après la licence : la plupart des indicateurs sont masqués pour protéger l'anonymat."},
+   metiers:[{c:"C1206",n:"Conseiller ou conseillère bancaire"},{c:"M1403",n:"Chargé ou chargée d'études économiques"},{c:"M1204",n:"Contrôleur ou contrôleuse de gestion"}] }
+];
+
+/* Métiers indicatifs utilisés en mode direct (repérés par mot-clé). */
+var METIERS_PAR_MOT = [
+  [/informati|numérique|numerique/i, ["informatique"]],
+  [/droit|juridi/i, ["droit"]], [/psycho/i, ["psycho"]], [/infirm/i, ["infirm"]],
+  [/staps|sport/i, ["staps"]], [/gestion|comptab/i, ["gea"]], [/commerc|vente/i, ["commerce"]],
+  [/santé|sante|médec|medec|pass\b/i, ["sante"]], [/ingénieur|ingenieur/i, ["inge"]]
+];
+var METIERS_REF = {
+  informatique: SAMPLE[0].metiers, droit: SAMPLE[3].metiers, psycho: SAMPLE[4].metiers, infirm: SAMPLE[6].metiers,
+  staps: SAMPLE[10].metiers, gea: SAMPLE[9].metiers, commerce: SAMPLE[11].metiers, sante: SAMPLE[5].metiers, inge: SAMPLE[8].metiers
+};
+
+SAMPLE.forEach(function (f) { f.origine = "exemple"; });
+
+/* ------------------------------------------------------------------
+   3. État et utilitaires
+   ------------------------------------------------------------------ */
+var state = { mode: "exemple", results: [], selected: null, compare: [], liveOk: false, liveMeta: null, loading: false };
+var $ = function (s) { return document.querySelector(s); };
+var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[c]; }); };
+var norm = function (s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
+var NBSP = " ";
+var isNum = function (v) { return typeof v === "number" && isFinite(v); };
+var ND = function (why) { return '<span class="nd" title="' + esc(why || "Donnée non publiée pour cette formation") + '">non disponible</span>'; };
+var pct = function (v, why) { return isNum(v) ? Math.round(v) + NBSP + "%" : ND(why); };
+var eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+var int = new Intl.NumberFormat("fr-FR");
+var dateFr = function (iso) { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return iso; } };
+
+function srcLine(key, f) {
+  var s = SOURCES[key];
+  var date = f.origine === "direct" && key === "parcoursup" && state.liveMeta && state.liveMeta.modified
+    ? "mis à jour le " + dateFr(state.liveMeta.modified)
+    : (f.origine === "exemple" ? "valeurs d'exemple" : "date de mise à jour : voir le jeu de données");
+  return '<p class="src">' + (f.origine === "exemple" || (f.origine === "direct" && key !== "parcoursup") ? '<span class="badge-ex">EXEMPLE</span>' : "") +
+    '<span>Source : <a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.nom) + '</a>, ' + esc(s.producteur) + '</span>' +
+    '<span>' + esc(s.millesime) + ' · ' + esc(date) + '</span>' +
+    '<span>Licence : <a href="' + esc(s.licence.url) + '" target="_blank" rel="noopener">' + esc(s.licence.nom) + '</a></span></p>';
+}
+
+function say(msg) { var el = $("#sr-msg"); el.textContent = ""; setTimeout(function () { el.textContent = msg; }, 30); }
+
+/* ------------------------------------------------------------------
+   4. Recherche : exemple local ou API Parcoursup (Opendatasoft v2.1)
+   ------------------------------------------------------------------ */
+function searchSample(q, type) {
+  var nq = norm(q).trim();
+  var terms = nq ? nq.split(/\s+/) : [];
+  return SAMPLE.filter(function (f) {
+    if (type && f.type !== type) return false;
+    if (!terms.length) return true;
+    var hay = norm([f.intitule, f.type, f.etab, f.ville, f.metiers.map(function (m) { return m.n; }).join(" ")].join(" "));
+    return terms.every(function (t) { return hay.indexOf(t) !== -1 || (t.length > 4 && hay.indexOf(t.slice(0, -1)) !== -1); });
+  });
+}
+
+function fetchJSON(url, ms) {
+  var ctrl = "AbortController" in window ? new AbortController() : null;
+  var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 8000);
+  return fetch(url, ctrl ? { signal: ctrl.signal } : {}).then(function (r) {
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }, function (e) { clearTimeout(timer); throw e; });
+}
+
+function pick(r, keys) { for (var i = 0; i < keys.length; i++) { var v = r[keys[i]]; if (v !== undefined && v !== null && v !== "") return v; } return null; }
+function share(r, pctKeys, countKeys, totalKeys) {
+  var p = pick(r, pctKeys); if (isNum(p)) return p;
+  var c = pick(r, countKeys), t = pick(r, totalKeys);
+  return isNum(c) && isNum(t) && t > 0 ? (100 * c) / t : null;
+}
+var LIVE_TYPES = { "BUT": /but\b/i, "BTS": /bts/i, "Licence": /licence/i, "PASS": /pass\b|santé|sante/i, "CPGE": /cpge|prépa|prepa/i, "IFSI": /ifsi|infirm/i, "École d'ingénieurs": /ingénieur|ingenieur/i };
+
+function mapLive(r, i) {
+  var intitule = pick(r, ["fil_lib_voe_acc", "form_lib_voe_acc", "lib_for_voe_ins"]) || "Formation sans intitulé";
+  var detail = pick(r, ["detail_forma", "lib_comp_voe_ins"]);
+  var fili = pick(r, ["fili", "form_lib_voe_acc"]) || "";
+  var type = Object.keys(LIVE_TYPES).filter(function (k) { return LIVE_TYPES[k].test(fili + " " + intitule); })[0] || fili || "Autre";
+  var tot = ["acc_tot"];
+  var f = {
+    id: "live-" + (pick(r, ["cod_aff_form"]) || i), origine: "direct", type: type,
+    intitule: detail ? intitule + " (" + detail + ")" : intitule,
+    etab: pick(r, ["g_ea_lib_vx", "lib_etab"]) || "Établissement non renseigné",
+    ville: pick(r, ["ville_etab", "commune_etab"]) || "", statut: pick(r, ["contrat_etab"]) || "Statut non renseigné",
+    selective: /non/i.test(String(pick(r, ["select_form"]) || "")) ? false : (pick(r, ["select_form"]) ? true : null),
+    lien: pick(r, ["lien_form_psup"]),
+    ps: {
+      capa: pick(r, ["capa_fin"]), voeux: pick(r, ["voe_tot"]), acces: pick(r, ["taux_acces_ens"]),
+      bac: { g: share(r, ["pct_bg"], ["acc_bg"], tot), t: share(r, ["pct_bt"], ["acc_bt"], tot), p: share(r, ["pct_bp"], ["acc_bp"], tot) },
+      mention: { tb: share(r, ["pct_tb"], ["acc_tb"], tot), b: share(r, ["pct_b"], ["acc_b"], tot), ab: share(r, ["pct_ab"], ["acc_ab"], tot), s: share(r, ["pct_sansmention"], ["acc_sansmention"], tot) },
+      boursiers: share(r, ["pct_bours"], ["acc_brs"], tot), femmes: share(r, ["pct_f"], ["acc_tot_f"], tot), academie: share(r, ["pct_aca_orig"], ["acc_aca_orig"], tot)
+    },
+    ins: null,
+    insRaison: "En mode direct, la correspondance avec InserSup n'est pas encore branchée. Parcoursup décrit une formation dans un établissement, alors qu'InserSup publie par diplôme et par discipline : il faut une table de passage (voir le README du projet).",
+    metiers: null
+  };
+  var hay = f.intitule + " " + fili;
+  for (var k = 0; k < METIERS_PAR_MOT.length; k++) { if (METIERS_PAR_MOT[k][0].test(hay)) { f.metiers = METIERS_REF[METIERS_PAR_MOT[k][1][0]]; f.metiersIndicatifs = true; break; } }
+  return f;
+}
+
+function searchLive(q, type) {
+  var where = [];
+  if (q.trim()) where.push(JSON.stringify(q.trim()));
+  var url = API_BASE + "/catalog/datasets/" + PARCOURSUP_DATASET + "/records?limit=30" + (where.length ? "&where=" + encodeURIComponent(where.join(" AND ")) : "");
+  return fetchJSON(url, 10000).then(function (data) {
+    var list = (data.results || []).map(mapLive);
+    return type ? list.filter(function (f) { return f.type === type; }) : list;
+  });
+}
+
+function probeLive() {
+  fetchJSON(API_BASE + "/catalog/datasets/" + PARCOURSUP_DATASET, 6000).then(function (d) {
+    var m = (d.metas && d.metas.default) || {};
+    state.liveOk = true;
+    state.liveMeta = { modified: m.modified || m.data_processed || null, count: m.records_count || null, licence: m.license || null };
+    if (m.license) SOURCES.parcoursup.licence = { nom: m.license, url: m.license_url || LO.url };
+    $("#mode-live").disabled = false;
+    $("#live-status").innerHTML = '<span class="status-dot ok"></span> API Parcoursup joignable' + (state.liveMeta.count ? " · " + int.format(state.liveMeta.count) + " formations" : "");
+  }).catch(function () {
+    state.liveOk = false;
+    $("#live-status").innerHTML = '<span class="status-dot ko"></span> API Parcoursup injoignable depuis ce navigateur : exemple utilisé';
+  });
+}
+
+/* ------------------------------------------------------------------
+   5. Rendu
+   ------------------------------------------------------------------ */
+function sortList(list, how) {
+  var val = function (f, fn) { var v = fn(f); return isNum(v) ? v : null; };
+  var by = function (fn, dir) {
+    return function (a, b) {
+      var x = val(a, fn), y = val(b, fn);
+      if (x === null && y === null) return a.intitule.localeCompare(b.intitule, "fr");
+      if (x === null) return 1; if (y === null) return -1;
+      return dir * (x - y);
+    };
+  };
+  var l = list.slice();
+  if (how === "acces-desc") l.sort(by(function (f) { return f.ps.acces; }, -1));
+  else if (how === "acces-asc") l.sort(by(function (f) { return f.ps.acces; }, 1));
+  else if (how === "salaire-desc") l.sort(by(function (f) { return f.ins && f.ins.salaire; }, -1));
+  else if (how === "emploi-desc") l.sort(by(function (f) { return f.ins && f.ins.emploi && f.ins.emploi[12]; }, -1));
+  else l.sort(function (a, b) { return a.intitule.localeCompare(b.intitule, "fr") || a.etab.localeCompare(b.etab, "fr"); });
+  return l;
+}
+
+function inCompare(f) { return state.compare.some(function (c) { return c.id === f.id; }); }
+
+function renderResults() {
+  var ul = $("#results");
+  var list = sortList(state.results, $("#f-sort").value);
+  state.results = list;
+  var label = $("#f-sort").selectedOptions[0].textContent.toLowerCase();
+  $("#res-count").textContent = list.length ? list.length + " résultat" + (list.length > 1 ? "s" : "") + " · " + label : "";
+  if (!list.length) {
+    ul.innerHTML = '<li class="empty"><strong>Aucune formation ne correspond à cette recherche.</strong><span>Vérifiez l\'orthographe, essayez un mot plus court (« info » plutôt que « informaticien ») ou retirez le filtre de type.</span><button type="button" class="btn ghost small" id="reset-search" style="justify-self:start">Afficher toutes les formations</button></li>';
+    $("#reset-search").addEventListener("click", function () { $("#q").value = ""; $("#f-type").value = ""; run(); });
+    return;
+  }
+  ul.innerHTML = list.map(function (f, i) {
+    var sel = state.selected && state.selected.id === f.id;
+    var emp = f.ins && f.ins.emploi ? f.ins.emploi[12] : null;
+    return '<li class="res" ' + (sel ? 'aria-current="true"' : "") + '>' +
+      '<button type="button" class="open" data-i="' + i + '" aria-label="Voir la fiche : ' + esc(f.intitule + ", " + f.etab) + '">' +
+        '<span class="t">' + esc(f.intitule) + (f.origine === "exemple" ? ' <span class="badge-ex">EXEMPLE</span>' : "") + '</span>' +
+        '<span class="e">' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</span>' +
+        '<span class="k"><span>Accès <b>' + (isNum(f.ps.acces) ? Math.round(f.ps.acces) + NBSP + "%" : "n.d.") + '</b></span>' +
+        '<span>Emploi 12 mois <b>' + (isNum(emp) ? Math.round(emp) + NBSP + "%" : "n.d.") + '</b></span>' +
+        '<span>Salaire <b>' + (f.ins && isNum(f.ins.salaire) ? eur.format(f.ins.salaire) : "n.d.") + '</b></span></span>' +
+      '</button>' +
+      '<div class="cmp"><button type="button" class="cmp-toggle" data-c="' + i + '" aria-pressed="' + inCompare(f) + '" aria-label="' + (inCompare(f) ? "Retirer du comparateur : " : "Ajouter au comparateur : ") + esc(f.intitule) + '">' + (inCompare(f) ? "✓ Comparé" : "+ Comparer") + '</button></div>' +
+    '</li>';
+  }).join("");
+}
+
+function stackBar(caption, parts, why) {
+  var known = parts.filter(function (p) { return isNum(p.v); });
+  if (!known.length) return '<div class="stack-group"><p class="cap">' + esc(caption) + '</p>' + '<p class="missing">' + ICON_INFO + '<span>' + esc(why || "Répartition non publiée pour cette formation.") + '</span></p></div>';
+  var sum = known.reduce(function (s, p) { return s + p.v; }, 0) || 1;
+  return '<div class="stack-group" role="group" aria-label="' + esc(caption) + '">' +
+    '<p class="cap">' + esc(caption) + '</p>' +
+    '<div class="stack" aria-hidden="true">' + known.filter(function (p) { return p.v > 0; }).map(function (p) {
+      return '<span style="flex:' + (p.v / sum) + ' 1 0;background:var(' + p.c + ')" title="' + esc(p.l + " : " + Math.round(p.v) + " %") + '"></span>';
+    }).join("") + '</div>' +
+    '<ul class="legend">' + parts.map(function (p) { return '<li><i style="background:var(' + p.c + ')"></i>' + esc(p.l) + ' <b>' + (isNum(p.v) ? Math.round(p.v) + NBSP + "%" : "n.d.") + '</b></li>'; }).join("") + '</ul></div>';
+}
+
+var ICON_INFO = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5M8 4.5v1" stroke="currentColor" stroke-width="1.6"/></svg>';
+
+function empChart(emploi) {
+  var keys = Object.keys(emploi).map(Number).sort(function (a, b) { return a - b; });
+  if (!keys.some(function (k) { return isNum(emploi[k]); })) return "";
+  var cols = keys.map(function (k) {
+    var v = emploi[k];
+    return '<div class="col">' + (isNum(v) ? '<span class="val" style="bottom:calc(' + v + '% + 4px)">' + Math.round(v) + NBSP + '%</span><span class="bar" style="height:' + v + '%"></span>' : '<span class="val nd" style="bottom:4px;font-size:.78rem">n.d.</span>') + '</div>';
+  }).join("");
+  var desc = keys.map(function (k) { return k + " mois : " + (isNum(emploi[k]) ? Math.round(emploi[k]) + " %" : "non disponible"); }).join(", ");
+  return '<figure style="margin:0;display:grid;gap:6px" role="img" aria-label="Taux d\'emploi après le diplôme. ' + esc(desc) + '">' +
+    '<figcaption class="cap" style="font-weight:700;font-size:.9rem">Part des diplômés en emploi salarié, selon le temps écoulé</figcaption>' +
+    '<div class="emp" aria-hidden="true">' + cols + '</div>' +
+    '<div class="emp-x" aria-hidden="true">' + keys.map(function (k) { return "<span>" + k + " mois</span>"; }).join("") + '</div></figure>';
+}
+
+function renderSheet(focus) {
+  var el = $("#fiche");
+  var f = state.selected;
+  if (!f) {
+    el.innerHTML = '<div class="empty"><strong>Choisissez une formation dans la liste</strong><span>Sa fiche affichera les chances d\'admission, l\'emploi et le salaire après le diplôme, et les métiers visés.</span></div>';
+    return;
+  }
+  var ps = f.ps, ins = f.ins;
+  var ratio = isNum(ps.voeux) && isNum(ps.capa) && ps.capa > 0 ? ps.voeux / ps.capa : null;
+  var accesPhrase = isNum(ps.acces)
+    ? "Sur 10 candidats qui ont demandé cette formation, environ <strong>" + Math.max(1, Math.round(ps.acces / 10)) + "</strong> ont reçu une proposition d'admission."
+    : "Le taux d'accès n'est pas publié pour cette formation.";
+
+  var html = '<header class="sheet-head">' +
+    '<p class="eyebrow">' + esc(f.type) + '</p>' +
+    '<h2 id="fiche-title" tabindex="-1">' + esc(f.intitule) + '</h2>' +
+    '<p style="color:var(--ink-2)">' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</p>' +
+    '<div class="meta">' + (f.origine === "exemple" ? '<span class="badge-ex">EXEMPLE</span>' : '<span class="badge">Données Parcoursup réelles</span>') +
+      '<span class="badge">' + esc(f.statut) + '</span>' +
+      (f.selective === true ? '<span class="badge">Formation sélective</span>' : f.selective === false ? '<span class="badge">Formation non sélective</span>' : "") + '</div>' +
+    '<div class="actions"><button type="button" class="btn small" id="sheet-cmp" aria-pressed="' + inCompare(f) + '">' + (inCompare(f) ? "✓ Dans le comparateur" : "+ Ajouter au comparateur") + '</button>' +
+      (f.lien ? '<a class="btn ghost small" style="display:inline-flex;align-items:center;text-decoration:none" href="' + esc(f.lien) + '" target="_blank" rel="noopener">Fiche Parcoursup officielle</a>' : "") + '</div>' +
+    '</header>';
+
+  /* Admission */
+  html += '<section class="block" aria-labelledby="b-adm"><div class="block-title"><h3 id="b-adm">Chances d\'admission et profil des admis</h3></div>' +
+    (f.alerte ? '<p class="flag">' + ICON_INFO + '<span>' + esc(f.alerte) + '</span></p>' : "") +
+    '<div class="kpis">' +
+      '<div class="kpi"><span class="v big">' + pct(ps.acces, "Taux d'accès non publié") + '</span><span class="l">taux d\'accès</span></div>' +
+      '<div class="kpi"><span class="v">' + (isNum(ps.capa) ? int.format(ps.capa) : ND()) + '</span><span class="l">places</span></div>' +
+      '<div class="kpi"><span class="v">' + (isNum(ps.voeux) ? int.format(ps.voeux) : ND()) + '</span><span class="l">candidatures (vœux)</span></div>' +
+      '<div class="kpi"><span class="v">' + (ratio ? Math.round(ratio) : ND()) + '</span><span class="l">candidatures par place</span></div>' +
+    '</div>' +
+    '<p class="plain">' + accesPhrase + '</p>' +
+    stackBar("Type de bac des admis", [{ l: "Général", v: ps.bac.g, c: "--s1" }, { l: "Technologique", v: ps.bac.t, c: "--s2" }, { l: "Professionnel", v: ps.bac.p, c: "--s3" }]) +
+    stackBar("Mention au bac des admis", [{ l: "Très bien", v: ps.mention.tb, c: "--m1" }, { l: "Bien", v: ps.mention.b, c: "--m2" }, { l: "Assez bien", v: ps.mention.ab, c: "--m3" }, { l: "Sans mention", v: ps.mention.s, c: "--m4" }]) +
+    '<div class="kpis">' +
+      '<div class="kpi"><span class="v">' + pct(ps.boursiers) + '</span><span class="l">des admis sont boursiers</span></div>' +
+      '<div class="kpi"><span class="v">' + pct(ps.femmes) + '</span><span class="l">des admis sont des filles</span></div>' +
+      '<div class="kpi"><span class="v">' + pct(ps.academie) + '</span><span class="l">viennent de la même académie</span></div>' +
+    '</div>' +
+    '<details class="how"><summary>Comment lire le taux d\'accès&nbsp;?</summary><p>C\'est la part des candidats qui ont reçu une proposition d\'admission pendant la phase principale de Parcoursup. Un taux bas signale une formation très demandée. Un taux haut ne garantit ni l\'admission, ni la réussite.</p></details>' +
+    srcLine("parcoursup", f) + '</section>';
+
+  /* Insertion */
+  html += '<section class="block" aria-labelledby="b-ins"><div class="block-title"><h3 id="b-ins">Après le diplôme : emploi et salaire</h3></div>';
+  if (!ins) {
+    html += '<div class="missing">' + ICON_INFO + '<div><strong>Pas de chiffres d\'insertion pour cette formation.</strong><p>' + esc(f.insRaison || "Aucune donnée d'insertion publiée.") + '</p></div></div>';
+  } else {
+    html += '<p class="scope">Périmètre : <b>' + esc(ins.perimetre) + '</b> · ' + esc(ins.promo) + '</p>' +
+      '<div class="kpis">' +
+        '<div class="kpi"><span class="v big">' + (isNum(ins.salaire) ? eur.format(ins.salaire) : ND(ins.salaireRaison)) + '</span><span class="l">salaire net mensuel médian, temps plein' + (isNum(ins.salaire) ? "" : '<br>' + esc(ins.salaireRaison || "")) + '</span></div>' +
+        '<div class="kpi"><span class="v">' + pct(ins.emploi && ins.emploi[12], "Masqué ou non publié") + '</span><span class="l">en emploi salarié à 12 mois</span></div>' +
+        '<div class="kpi"><span class="v">' + pct(ins.stable, "Masqué ou non publié") + '</span><span class="l">des emplois sont stables (CDI, fonctionnaire)</span></div>' +
+        '<div class="kpi"><span class="v">' + pct(ins.poursuite) + '</span><span class="l">poursuivent leurs études</span></div>' +
+      '</div>' + empChart(ins.emploi || {}) +
+      (isNum(ins.salaire) ? '<p class="plain">La moitié des diplômés en emploi à temps plein gagne moins de <strong>' + eur.format(ins.salaire) + '</strong> net par mois, l\'autre moitié gagne plus.</p>' : "") +
+      (ins.note ? '<p class="scope">' + ICON_INFO + ' ' + esc(ins.note) + '</p>' : "") +
+      srcLine(ins.src, f);
+  }
+  html += '</section>';
+
+  /* Métiers */
+  html += '<section class="block" aria-labelledby="b-met"><div class="block-title"><h3 id="b-met">Métiers visés</h3></div>';
+  if (!f.metiers || !f.metiers.length) {
+    html += '<div class="missing">' + ICON_INFO + '<span>Aucun métier associé n\'est encore relié à cette formation. Consultez la fiche ONISEP du diplôme pour une liste complète.</span></div>';
+  } else {
+    html += (f.metiersIndicatifs ? '<p class="scope">Liste indicative, choisie d\'après l\'intitulé de la formation.</p>' : "") +
+      '<ul class="jobs">' + f.metiers.map(function (m) { return '<li><strong>' + esc(m.n) + '</strong><span class="code">Code ROME ' + esc(m.c) + '</span></li>'; }).join("") + '</ul>' +
+      srcLine("onisep", { origine: f.origine === "direct" ? "direct" : "exemple" });
+  }
+  html += '</section>';
+
+  el.innerHTML = html;
+  $("#sheet-cmp").addEventListener("click", function () { toggleCompare(f); });
+  if (focus) {
+    var h = $("#fiche-title");
+    h.focus({ preventScroll: true });
+    if (window.matchMedia("(max-width: 860px)").matches) el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+}
+
+/* Comparateur */
+function toggleCompare(f) {
+  if (inCompare(f)) {
+    state.compare = state.compare.filter(function (c) { return c.id !== f.id; });
+    say(f.intitule + " retirée du comparateur.");
+  } else if (state.compare.length >= 3) {
+    say("Le comparateur contient déjà 3 formations. Retirez-en une pour en ajouter une autre.");
+    $("#global-alert").innerHTML = '<p class="alert">Le comparateur contient déjà 3 formations. Retirez-en une dans la barre du bas pour en ajouter une autre.</p>';
+    setTimeout(function () { $("#global-alert").innerHTML = ""; }, 6000);
+    return;
+  } else {
+    state.compare.push(f);
+    say(f.intitule + " ajoutée au comparateur (" + state.compare.length + " sur 3).");
+  }
+  renderTray(); renderResults(); renderSheet(false);
+  if (!$("#compare").hidden) renderCompare(false);
+}
+
+function renderTray() {
+  var n = state.compare.length;
+  $("#tray").hidden = n === 0;
+  $("#tray-count").textContent = n;
+  $("#tray-go").disabled = n < 2;
+  $("#tray-go").textContent = n < 2 ? "Ajoutez au moins 2 formations" : "Comparer (" + n + ")";
+  $("#tray-chips").innerHTML = state.compare.map(function (c, i) {
+    return '<span class="chip"><span title="' + esc(c.intitule) + '">' + esc(c.intitule) + '</span><button type="button" data-rm="' + i + '" aria-label="Retirer ' + esc(c.intitule) + ' du comparateur">×</button></span>';
+  }).join("");
+  if (n < 2) $("#compare").hidden = true;
+}
+
+function renderCompare(focus) {
+  var list = state.compare, sec = $("#compare");
+  if (list.length < 2) { sec.hidden = true; return; }
+  var cell = function (v) { return '<td class="n">' + v + '</td>'; };
+  var rows = [
+    ["Établissement", function (f) { return '<td>' + esc(f.etab) + (f.ville ? ", " + esc(f.ville) : "") + '</td>'; }],
+    ["Statut", function (f) { return '<td>' + esc(f.statut) + '</td>'; }],
+    ["Taux d'accès", function (f) { return cell(pct(f.ps.acces)); }],
+    ["Candidatures par place", function (f) { return cell(isNum(f.ps.voeux) && f.ps.capa ? Math.round(f.ps.voeux / f.ps.capa) : ND()); }],
+    ["Admis avec mention Très bien", function (f) { return cell(pct(f.ps.mention.tb)); }],
+    ["Admis venant d'un bac général", function (f) { return cell(pct(f.ps.bac.g)); }],
+    ["Admis boursiers", function (f) { return cell(pct(f.ps.boursiers)); }],
+    ["En emploi salarié à 12 mois", function (f) { return cell(f.ins ? pct(f.ins.emploi && f.ins.emploi[12]) : ND(f.insRaison)); }],
+    ["Salaire net mensuel médian", function (f) { return cell(f.ins && isNum(f.ins.salaire) ? eur.format(f.ins.salaire) : ND(f.ins ? f.ins.salaireRaison : f.insRaison)); }],
+    ["Emplois stables", function (f) { return cell(f.ins ? pct(f.ins.stable) : ND(f.insRaison)); }],
+    ["Poursuite d'études", function (f) { return cell(f.ins ? pct(f.ins.poursuite) : ND(f.insRaison)); }],
+    ["Périmètre des chiffres d'insertion", function (f) { return '<td>' + (f.ins ? esc(f.ins.perimetre + " · " + f.ins.promo) : '<span class="nd">pas de données</span>') + '</td>'; }],
+    ["Métiers visés", function (f) { return '<td>' + (f.metiers ? esc(f.metiers.map(function (m) { return m.n; }).join(" ; ")) : ND()) + '</td>'; }],
+    ["Données", function (f) { return '<td>' + (f.origine === "exemple" ? '<span class="badge-ex">EXEMPLE</span>' : "Parcoursup réel") + '</td>'; }]
+  ];
+  sec.innerHTML = '<div class="block-title"><h2 id="cmp-title" tabindex="-1">Comparaison de ' + list.length + ' formations</h2>' +
+    '<button type="button" class="btn ghost small" id="cmp-close">Fermer la comparaison</button></div>' +
+    '<p class="scope">Les chiffres sont présentés côte à côte, sans désigner de « meilleure » formation. Le bon choix dépend de votre projet. Comparez les chiffres d\'insertion seulement quand leur périmètre est le même.</p>' +
+    '<div class="table-scroll" tabindex="0" role="region" aria-labelledby="cmp-title"><table><thead><tr><th scope="col"><span class="visually-hidden">Indicateur</span></th>' +
+    list.map(function (f) { return '<th scope="col">' + esc(f.intitule) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    rows.map(function (r) { return '<tr><th scope="row">' + esc(r[0]) + '</th>' + list.map(r[1]).join("") + '</tr>'; }).join("") +
+    '</tbody></table></div>' +
+    '<div style="display:grid;gap:4px">' + srcLine("parcoursup", list[0]) + srcLine("insersup", { origine: "exemple" }) + srcLine("inserjeunes", { origine: "exemple" }) + '</div>';
+  sec.hidden = false;
+  $("#cmp-close").addEventListener("click", function () { sec.hidden = true; $("#tray-go").focus(); });
+  if (focus) { $("#cmp-title").focus({ preventScroll: true }); sec.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+}
+
+function renderSources() {
+  $("#sources-list").innerHTML = Object.keys(SOURCES).map(function (k) {
+    var s = SOURCES[k];
+    return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.nom) + '</a>, ' + esc(s.producteur) + ', ' + esc(s.millesime) + '. Licence : <a href="' + esc(s.licence.url) + '" target="_blank" rel="noopener">' + esc(s.licence.nom) + '</a>.</li>';
+  }).join("") + '<li>Les valeurs marquées <span class="badge-ex">EXEMPLE</span> sont fictives et servent uniquement à démontrer le prototype.</li>';
+}
+
+/* ------------------------------------------------------------------
+   6. Orchestration
+   ------------------------------------------------------------------ */
+function run(focusFirst) {
+  var q = $("#q").value, type = $("#f-type").value;
+  $("#global-alert").innerHTML = "";
+  if (state.mode === "direct") {
+    $("#res-count").textContent = "Recherche dans Parcoursup…";
+    $("#results").setAttribute("aria-busy", "true");
+    searchLive(q, type).then(function (list) {
+      state.results = list; finish(focusFirst);
+    }).catch(function (e) {
+      $("#global-alert").innerHTML = '<p class="alert"><strong>L\'API Parcoursup n\'a pas répondu</strong> (' + esc(e.name === "AbortError" ? "délai dépassé" : e.message) + '). Les résultats affichés viennent du jeu d\'exemple. Réessayez plus tard ou vérifiez votre connexion.</p>';
+      setMode("exemple", true);
+    }).then(function () { $("#results").removeAttribute("aria-busy"); });
+  } else {
+    state.results = searchSample(q, type);
+    finish(focusFirst);
+  }
+}
+function finish(focusFirst) {
+  renderResults();
+  if (!state.selected || !state.results.some(function (f) { return f.id === state.selected.id; })) state.selected = state.results[0] || null;
+  renderResults(); renderSheet(!!focusFirst);
+}
+function setMode(m, silent) {
+  state.mode = m;
+  $("#mode-sample").setAttribute("aria-pressed", m === "exemple");
+  $("#mode-live").setAttribute("aria-pressed", m === "direct");
+  $("#sample-flag").hidden = m === "direct";
+  state.selected = null;
+  if (!silent) { if (m === "direct" && !$("#q").value) $("#q").value = "informatique"; run(); }
+  else { state.results = searchSample($("#q").value, $("#f-type").value); finish(); }
+}
+
+$("#search-form").addEventListener("submit", function (e) { e.preventDefault(); run(); });
+$("#f-type").addEventListener("change", function () { run(); });
+$("#f-sort").addEventListener("change", function () { renderResults(); });
+document.querySelectorAll("[data-q]").forEach(function (b) { b.addEventListener("click", function () { $("#q").value = b.getAttribute("data-q"); run(); }); });
+$("#results").addEventListener("click", function (e) {
+  var o = e.target.closest("button.open"), c = e.target.closest("button.cmp-toggle");
+  if (o) { state.selected = state.results[+o.getAttribute("data-i")]; renderResults(); renderSheet(true); }
+  else if (c) { toggleCompare(state.results[+c.getAttribute("data-c")]); var again = document.querySelector('[data-c="' + c.getAttribute("data-c") + '"]'); if (again) again.focus(); }
+});
+$("#tray-chips").addEventListener("click", function (e) { var b = e.target.closest("[data-rm]"); if (b) { toggleCompare(state.compare[+b.getAttribute("data-rm")]); var first = document.querySelector("#tray-chips button") || $("#q"); first.focus(); } });
+$("#tray-go").addEventListener("click", function () { renderCompare(true); });
+$("#tray-clear").addEventListener("click", function () { state.compare = []; renderTray(); renderResults(); renderSheet(false); say("Comparateur vidé."); $("#q").focus(); });
+$("#mode-sample").addEventListener("click", function () { setMode("exemple"); });
+$("#mode-live").addEventListener("click", function () { if (state.liveOk) setMode("direct"); });
+
+/* État de départ : fiche ouverte + deux formations déjà dans le comparateur. */
+renderSources();
+state.results = searchSample("", "");
+state.selected = SAMPLE[0];
+state.compare = [SAMPLE[0], SAMPLE[1]];
+finish(false);
+renderTray();
+probeLive();
+})();
+</script>
