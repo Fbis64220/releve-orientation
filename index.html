@@ -103,6 +103,11 @@ input[type="search"], select { font: inherit; color: var(--ink); background: var
 .btn.small { min-height: 36px; padding: 4px 12px; font-size: .9rem; }
 .btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
+.cible { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cible legend { font-weight: 700; font-size: .92rem; padding: 0; margin-bottom: 4px; width: 100%; }
+.cible label { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 8px 12px; cursor: pointer; min-height: 44px; }
+.cible label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.cible input { accent-color: var(--accent); }
 .filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
 .filters .field { min-width: 0; flex: 1 1 180px; }
 .search-row { display: flex; align-items: end; gap: 8px; }
@@ -255,6 +260,11 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
     </div>
 
     <form class="search" id="search-form" role="search" aria-label="Rechercher une formation">
+      <fieldset class="cible">
+        <legend>Je cherche une formation</legend>
+        <label><input type="radio" name="cible" id="cible-bac" value="bac" checked> après le bac (Parcoursup)</label>
+        <label><input type="radio" name="cible" id="cible-bac2" value="bac2"> après un Bac+2 : licence professionnelle</label>
+      </fieldset>
       <div class="search-row">
         <div class="field">
           <label for="q">Formation, métier, établissement ou ville</label>
@@ -282,6 +292,7 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
           </select>
         </div>
       </div>
+      <p id="lp-help" class="scope" hidden>Les licences pro ne passent pas par Parcoursup : on candidate auprès de l'établissement, souvent sur eCandidat. Les chiffres viennent d'InserSup, qui les publie au nom de l'université de rattachement. Pour un IUT, cherchez l'université ou la ville de l'université (par exemple « Pau » pour l'IUT de Bayonne) ou un domaine (« web », « réseaux »).</p>
       <p id="q-help" class="suggest">Essayez&nbsp;:
         <button type="button" data-q="informatique">informatique</button>
         <button type="button" data-q="infirmier">infirmier</button>
@@ -468,6 +479,7 @@ var SAMPLE = [
 var NIVEAUX = {
   "BUT": { bac: "Bac+3", cadre: 6, detail: "Diplôme en 3 ans, qui confère le grade de licence." },
   "BTS": { bac: "Bac+2", cadre: 5, detail: "Diplôme en 2 ans." },
+  "Licence professionnelle": { bac: "Bac+3", cadre: 6, detail: "Diplôme en 1 an, accessible après un Bac+2 (BTS, 2e année de BUT ou de licence)." },
   "Licence": { bac: "Bac+3", cadre: 6, detail: "Diplôme en 3 ans (L1, L2, L3)." },
   "PASS": { bac: "1 an après le bac", cadre: null, detail: "Année d'accès qui ne délivre pas de diplôme seule. Elle ouvre vers des études longues : Bac+5 (sage-femme, kinésithérapeute) à Bac+9 et plus (médecin)." },
   "CPGE": { bac: "Bac+2", cadre: null, detail: "Pas de diplôme à la sortie, mais jusqu'à 120 crédits ECTS. Elle prépare aux concours d'écoles de niveau Bac+5." },
@@ -485,6 +497,7 @@ var POURSUITES = {
   "BTS": ["Licence professionnelle en 1 an (Bac+3).", "Bachelor, ou entrée en 3e année de BUT selon les places.", "Classe prépa ATS pour viser une école d'ingénieurs."],
   "Licence": ["Master (Bac+5), dont le master MEEF pour devenir professeur.", "Concours de la fonction publique de catégorie A.", "Écoles (journalisme, commerce, instituts d'études politiques) sur concours ou dossier."],
   "PASS": ["Médecine, maïeutique, odontologie, pharmacie ou kinésithérapie, si l'étudiant est admis en fin d'année.", "Sinon, 2e année de la licence choisie en option, avec une seconde chance par une LAS."],
+  "Licence professionnelle": ["Entrée dans la vie active : la licence pro est conçue pour ça.", "Master, plus rarement, sur dossier.", "Souvent préparée en alternance, ce qui facilite l'embauche."],
   "CPGE": ["École d'ingénieurs, par concours.", "Sans école, 3e année de licence grâce aux crédits ECTS validés."],
   "IFSI": ["Spécialisations : bloc opératoire (IBODE), anesthésie (IADE), puériculture.", "Master d'infirmier en pratique avancée (IPA).", "Cadre de santé, après plusieurs années d'exercice."],
   "École d'ingénieurs": ["Emploi direct dans la grande majorité des cas.", "Doctorat (3 ans) pour la recherche.", "Mastère spécialisé ou double diplôme."],
@@ -518,7 +531,7 @@ var DISCIPLINES_MASTER = [
   [/lettres|arts|musique|cinema|langage/, "Lettres, sciences du langage, arts"]
 ];
 function disciplineMaster(f) {
-  if (f.type !== "Licence" && f.type !== "BUT") return null;
+  if (f.type !== "Licence" && f.type !== "BUT" && f.type !== "Licence professionnelle") return null;
   var t = norm(f.intitule + " " + (f.specialite || ""));
   for (var i = 0; i < DISCIPLINES_MASTER.length; i++) if (DISCIPLINES_MASTER[i][0].test(t)) return DISCIPLINES_MASTER[i][1];
   return null;
@@ -541,7 +554,7 @@ SAMPLE.forEach(function (f) { f.origine = "exemple"; });
 /* ------------------------------------------------------------------
    3. État et utilitaires
    ------------------------------------------------------------------ */
-var state = { mode: "exemple", results: [], selected: null, compare: [], liveOk: false, liveMeta: null, loading: false };
+var state = { cible: "bac", mode: "exemple", results: [], selected: null, compare: [], liveOk: false, liveMeta: null, loading: false };
 var $ = function (s) { return document.querySelector(s); };
 var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[c]; }); };
 var norm = function (s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
@@ -701,6 +714,79 @@ function loadInsertion(f) {
   });
 }
 
+/* Licences pro : InserSup, une ligne par université et par mention, la plus récente avec des chiffres. */
+var PS_VIDE = { capa: null, voeux: null, acces: null, bac: {}, mention: {}, boursiers: null, femmes: null, academie: null };
+function titre(lib) { lib = String(lib || "").toLowerCase(); return lib.charAt(0).toUpperCase() + lib.slice(1); }
+function mapLP(base, sal) {
+  var promo = function (r) { return [].concat(r.promo).join(" et "); };
+  var sort12 = numOrNull(base.nb_sortants_12), pours12 = numOrNull(base.nb_poursuivants_12);
+  var emploi = {};
+  [6, 12, 18, 30].forEach(function (m) { var v = numOrNull(base["tx_sortants_en_emploi_sal_fr_" + m]); if (isNum(v) || m <= 18) emploi[m] = v; });
+  var a = emploi[6], b = emploi[12], c = emploi[18];
+  var vide = !isNum(a) && !isNum(b) && !isNum(c);
+  var f = {
+    id: "lp-" + norm(base.uo_lib + "-" + base.libelle_diplome).replace(/[^a-z0-9]+/g, "-"),
+    origine: "direct", type: "Licence professionnelle", horsParcoursup: true,
+    intitule: "Licence pro " + titre(base.libelle_diplome), specialite: base.libelle_diplome,
+    etab: base.uo_lib, ville: base.aca_nom ? "académie de " + base.aca_nom.replace(/^Académie de /i, "") : "",
+    statut: "Public", selective: true, ps: PS_VIDE
+  };
+  if (vide && !sal) {
+    f.ins = null; f.insEtat = "absent";
+    f.insRaison = "InserSup masque les chiffres : " + (base.exception_12 ? base.exception_12.toLowerCase() : "trop peu de diplômés") + " (secret statistique).";
+  } else {
+    f.insEtat = "ok";
+    f.ins = { src: "insersup", reel: true, perimetre: "Établissement : " + base.uo_lib, promo: "Diplômés " + promo(base), emploi: emploi,
+      salaire: sal ? numOrNull(sal.salaire_q2_12) : null, salaireRaison: "InserSup ne publie pas de salaire pour cette licence pro (trop peu de diplômés en emploi).",
+      stable: numOrNull(base.tx_sortants_en_emploi_stable_12),
+      poursuite: isNum(sort12) && isNum(pours12) && sort12 + pours12 > 0 ? 100 * pours12 / (sort12 + pours12) : null,
+      note: (sal && sal !== base ? "Salaire : diplômés " + promo(sal) + ", dernière promotion pour laquelle il est publié. " : "") +
+        (base.exception_12 ? base.exception_12 + ". " : "") + "Emploi et salaire concernent les diplômés qui ont arrêté leurs études." };
+  }
+  var hay = f.intitule;
+  for (var k = 0; k < METIERS_PAR_MOT.length; k++) { if (METIERS_PAR_MOT[k][0].test(hay)) { f.metiers = METIERS_REF[METIERS_PAR_MOT[k][1][0]]; f.metiersIndicatifs = true; break; } }
+  if (!f.metiers) f.metiers = null;
+  return f;
+}
+function groupLP(rows) {
+  var groups = {}, order = [];
+  rows.forEach(function (r) {
+    var k = r.uo_lib + "|" + r.libelle_diplome;
+    if (!groups[k]) { groups[k] = []; order.push(k); }
+    groups[k].push(r);
+  });
+  return order.map(function (k) {
+    var g = groups[k];
+    var base = g.filter(function (r) { return isNum(numOrNull(r.tx_sortants_en_emploi_sal_fr_12)); })[0] || g[0];
+    var sal = g.filter(function (r) { return isNum(numOrNull(r.salaire_q2_12)); })[0];
+    return mapLP(base, sal);
+  });
+}
+function searchLP(q) {
+  var t = q.trim().replace(/"/g, "");
+  var where = 'type_diplome="Licence professionnelle" and uo_lib!="National" and genre="ensemble" and nationalite="ensemble" and regime_inscription="ensemble" and obtention_diplome="diplômé"' +
+    ' and libelle_diplome!="Toute licence professionnelle"' +
+    (t ? ' and (search(libelle_diplome,"' + t + '") or search(uo_lib,"' + t + '") or search(aca_nom,"' + t + '"))' : "");
+  var url = API_BASE + "/catalog/datasets/" + INSERSUP_DATASET + "/records?limit=100&order_by=promo%20desc&where=" + encodeURIComponent(where);
+  return fetchJSON(url, 15000).then(function (data) {
+    var rows = data.results || [];
+    /* La recherche plein texte de l'API prend « pau » pour un début de mot (« Paul ») : on garde les mots entiers. */
+    var mots = norm(t).split(/\s+/).filter(Boolean);
+    var entiers = rows.filter(function (r) {
+      var h = " " + norm([r.libelle_diplome, r.uo_lib, r.aca_nom].join(" ")).replace(/[^a-z0-9]+/g, " ") + " ";
+      return mots.every(function (m) { return h.indexOf(" " + m + " ") !== -1 || h.indexOf(" " + m + "s ") !== -1; });
+    });
+    return groupLP(entiers.length ? entiers : rows);
+  });
+}
+/* Instantané réel (InserSup, extrait le 1er novembre 2026) affiché si l'API ne répond pas. */
+var LP_INSTANTANE = [
+  { uo_lib: "Université de Pau et des Pays de l'Adour", aca_nom: "Bordeaux", libelle_diplome: "METIERS DU NUMERIQUE : CONCEPTION, REDACTION ET REALISATION WEB", promo: ["2022", "2023"], nb_sortants_12: 25, nb_poursuivants_12: "21", tx_sortants_en_emploi_sal_fr_6: "64.0", tx_sortants_en_emploi_sal_fr_12: "68.0", tx_sortants_en_emploi_sal_fr_18: "72.0", tx_sortants_en_emploi_stable_12: "88.24", salaire_q2_12: "nd", exception_12: "Moins de 20 sortants donc cumul de 2 promotions" },
+  { uo_lib: "Université de Pau et des Pays de l'Adour", aca_nom: "Bordeaux", libelle_diplome: "METIERS DES RESEAUX INFORMATIQUES ET TELECOMMUNICATIONS", promo: ["2023"], nb_sortants_12: 26, nb_poursuivants_12: "21", tx_sortants_en_emploi_sal_fr_6: "61.54", tx_sortants_en_emploi_sal_fr_12: "84.62", tx_sortants_en_emploi_sal_fr_18: "73.08", tx_sortants_en_emploi_stable_12: "59.09", salaire_q2_12: "nd" },
+  { uo_lib: "Université de Pau et des Pays de l'Adour", aca_nom: "Bordeaux", libelle_diplome: "METIERS DES RESEAUX INFORMATIQUES ET TELECOMMUNICATIONS", promo: ["2022"], nb_sortants_12: 36, nb_poursuivants_12: "15", tx_sortants_en_emploi_sal_fr_6: "69.44", tx_sortants_en_emploi_sal_fr_12: "77.78", tx_sortants_en_emploi_sal_fr_18: "75.0", tx_sortants_en_emploi_stable_12: "75.0", salaire_q2_12: "1900" },
+  { uo_lib: "Université de Pau et des Pays de l'Adour", aca_nom: "Bordeaux", libelle_diplome: "METIERS DE L'INFORMATIQUE : CONCEPTION, DEVELOPPEMENT ET TEST DE LOGICIELS", promo: ["2022", "2023"], nb_sortants_12: 14, nb_poursuivants_12: "nd", tx_sortants_en_emploi_sal_fr_6: "nd", tx_sortants_en_emploi_sal_fr_12: "nd", tx_sortants_en_emploi_sal_fr_18: "nd", tx_sortants_en_emploi_stable_12: "nd", salaire_q2_12: "nd", exception_12: "Moins de 20 sortants donc cumul de 2 promotions" }
+];
+
 function probeLive() {
   fetchJSON(API_BASE + "/catalog/datasets/" + PARCOURSUP_DATASET, 6000).then(function (d) {
     var m = (d.metas && d.metas.default) || {};
@@ -766,7 +852,7 @@ function renderResults() {
       '<button type="button" class="open" data-i="' + i + '" aria-label="Voir la fiche : ' + esc(f.intitule + ", " + f.etab) + '">' +
         '<span class="t">' + esc(f.intitule) + (f.origine === "exemple" ? ' <span class="badge-ex">EXEMPLE</span>' : "") + '</span>' +
         '<span class="e"><b>' + esc(niveau(f).bac) + '</b> · ' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</span>' +
-        '<span class="k"><span>Accès <b>' + (isNum(f.ps.acces) ? Math.round(f.ps.acces) + NBSP + "%" : "n.d.") + '</b></span>' +
+        '<span class="k"><span>Accès <b>' + (f.horsParcoursup ? "hors Parcoursup" : isNum(f.ps.acces) ? Math.round(f.ps.acces) + NBSP + "%" : "n.d.") + '</b></span>' +
         '<span>Emploi 12 mois <b>' + (isNum(emp) ? Math.round(emp) + NBSP + "%" : nd) + '</b></span>' +
         '<span>Salaire <b>' + (f.ins && isNum(f.ins.salaire) ? eur.format(f.ins.salaire) : nd) + '</b></span></span>' +
       '</button>' +
@@ -821,7 +907,7 @@ function renderSheet(focus) {
     '<h2 id="fiche-title" tabindex="-1">' + esc(f.intitule) + '</h2>' +
     '<p style="color:var(--ink-2)">' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</p>' +
     '<p class="level"><b>' + esc(niveau(f).bac) + '</b><span>' + (niveau(f).cadre ? "niveau " + niveau(f).cadre + " du cadre national · " : "") + esc(niveau(f).detail) + '</span></p>' +
-    '<div class="meta">' + (f.origine === "exemple" ? '<span class="badge-ex">EXEMPLE</span>' : '<span class="badge">Données réelles · session ' + esc(f.session || "") + '</span>') +
+    '<div class="meta">' + (f.origine === "exemple" ? '<span class="badge-ex">EXEMPLE</span>' : '<span class="badge">Données réelles · ' + (f.horsParcoursup ? "InserSup" : "session " + esc(f.session || "")) + '</span>') +
       '<span class="badge">' + esc(f.statut) + '</span>' +
       (f.selective === true ? '<span class="badge">Formation sélective</span>' : f.selective === false ? '<span class="badge">Formation non sélective</span>' : "") + '</div>' +
     '<div class="actions"><button type="button" class="btn small" id="sheet-cmp" aria-pressed="' + inCompare(f) + '">' + (inCompare(f) ? "✓ Dans le comparateur" : "+ Ajouter au comparateur") + '</button>' +
@@ -829,7 +915,9 @@ function renderSheet(focus) {
     srcLine("niveaux", f, false) + '</header>';
 
   /* Admission */
-  html += '<section class="block" aria-labelledby="b-adm"><div class="block-title"><h3 id="b-adm">Chances d\'admission et profil des admis</h3></div>' +
+  if (f.horsParcoursup) html += '<section class="block" aria-labelledby="b-adm"><div class="block-title"><h3 id="b-adm">Admission</h3></div>' +
+    '<div class="missing">' + ICON_INFO + '<div><strong>Pas de chiffres d\'admission publics.</strong><p>Cette formation ne passe pas par Parcoursup : on candidate directement auprès de l\'établissement, souvent sur la plateforme eCandidat, avec un Bac+2. Le nombre de places et le taux d\'admission ne sont publiés dans aucun jeu de données ouvert.</p></div></div></section>';
+  else html += '<section class="block" aria-labelledby="b-adm"><div class="block-title"><h3 id="b-adm">Chances d\'admission et profil des admis</h3></div>' +
     (f.alerte ? '<p class="flag">' + ICON_INFO + '<span>' + esc(f.alerte) + '</span></p>' : "") +
     '<div class="kpis">' +
       '<div class="kpi"><span class="v big">' + pct(ps.acces, "Taux d'accès non publié") + '</span><span class="l">taux d\'accès</span></div>' +
@@ -882,15 +970,17 @@ function renderSheet(focus) {
     '<p class="src">Repères généraux rédigés pour ce prototype, à relier aux fiches ONISEP : ce ne sont pas des statistiques.</p>';
   var disc = disciplineMaster(f), mm = disc && MONMASTER_2025[disc];
   if (mm) {
-    var deMonType = f.type === "BUT" ? mm.but3 : mm.lg3;
+    var deMonType = f.type === "BUT" ? mm.but3 : f.type === "Licence professionnelle" ? mm.lp3 : mm.lg3;
+    var origine = f.type === "BUT" ? "d'un BUT" : f.type === "Licence professionnelle" ? "d'une licence pro" : "d'une licence générale";
     html += '<h4 style="margin:6px 0 0;font-family:var(--font-display);font-size:1rem">Entrer en master : « ' + esc(disc) + ' »</h4>' +
       '<div class="kpis">' +
         '<div class="kpi"><span class="v">' + int.format(mm.places) + '</span><span class="l">places dans ' + int.format(mm.masters) + ' masters</span></div>' +
         '<div class="kpi"><span class="v">' + int.format(mm.admis) + '</span><span class="l">étudiants admis au total</span></div>' +
         '<div class="kpi"><span class="v">' + pct(100 * mm.lg3 / mm.admis) + '</span><span class="l">venaient d\'une licence générale</span></div>' +
         '<div class="kpi"><span class="v">' + pct(100 * mm.but3 / mm.admis) + '</span><span class="l">venaient d\'un BUT</span></div>' +
+        (f.type === "Licence professionnelle" ? '<div class="kpi"><span class="v">' + pct(100 * mm.lp3 / mm.admis) + '</span><span class="l">venaient d\'une licence pro</span></div>' : "") +
       '</div>' +
-      '<p class="plain">En 2025, <strong>' + int.format(deMonType) + '</strong> étudiants sortant ' + (f.type === "BUT" ? "d'un BUT" : "d'une licence générale") + ' ont accepté une place dans un master de cette discipline, en France.</p>' +
+      '<p class="plain">En 2025, <strong>' + int.format(deMonType) + '</strong> étudiants sortant ' + origine + ' ont accepté une place dans un master de cette discipline, en France.</p>' +
       '<p class="scope">Discipline choisie d\'après l\'intitulé de la formation. Seules les admissions passées par la plateforme MonMaster sont comptées.</p>' +
       srcLine("monmaster", f, false);
   }
@@ -999,6 +1089,22 @@ function renderSources() {
 function run(focusFirst) {
   var q = $("#q").value, type = $("#f-type").value;
   $("#global-alert").innerHTML = "";
+  if (state.cible === "bac2") {
+    if (!q.trim()) {
+      state.results = []; state.selected = null;
+      $("#results").innerHTML = '<li class="empty"><strong>Tapez un domaine ou une université.</strong><span>Par exemple « web », « réseaux », « Pau » ou « Bordeaux ». InserSup recense plus de 1 000 licences pro.</span></li>';
+      $("#res-count").textContent = ""; renderSheet(false); return;
+    }
+    $("#res-count").textContent = "Recherche dans InserSup…";
+    $("#results").setAttribute("aria-busy", "true");
+    searchLP(q).then(function (list) {
+      state.results = list; finish(focusFirst);
+    }).catch(function (e) {
+      $("#global-alert").innerHTML = '<p class="alert"><strong>InserSup n\'a pas répondu</strong> (' + esc(e.name === "AbortError" ? "délai dépassé" : e.message) + '). Voici un instantané réel de quelques licences pro de l\'Université de Pau, extrait le 1er novembre 2026. Réessayez plus tard pour une recherche complète.</p>';
+      state.results = groupLP(LP_INSTANTANE); finish(focusFirst);
+    }).then(function () { $("#results").removeAttribute("aria-busy"); });
+    return;
+  }
   if (state.mode === "direct") {
     $("#res-count").textContent = "Recherche dans Parcoursup…";
     $("#results").setAttribute("aria-busy", "true");
@@ -1028,6 +1134,18 @@ function setMode(m, silent) {
   else { state.results = searchSample($("#q").value, $("#f-type").value); finish(); }
 }
 
+document.querySelectorAll('input[name="cible"]').forEach(function (r) {
+  r.addEventListener("change", function () {
+    state.cible = r.value; state.selected = null;
+    var lp = state.cible === "bac2";
+    $("#lp-help").hidden = !lp; $("#q-help").hidden = lp;
+    $("#sample-flag").hidden = lp || state.mode === "direct";
+    $("#f-type").closest(".field").hidden = lp;
+    $("#q").placeholder = lp ? "ex. web, réseaux, Pau, Bordeaux…" : "ex. informatique, infirmier, droit, Lyon…";
+    if (lp && !$("#q").value) $("#q").value = "web";
+    run();
+  });
+});
 $("#search-form").addEventListener("submit", function (e) { e.preventDefault(); run(); });
 $("#f-type").addEventListener("change", function () { run(); });
 $("#f-sort").addEventListener("change", function () { renderResults(); });

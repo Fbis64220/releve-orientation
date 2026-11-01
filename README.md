@@ -42,6 +42,7 @@ Le code source est dans `src/app.html`. `index.html` est généré par :
 | 1 | Recherche (intitulé, métier, établissement, ville) + filtre par type + tri | ✅ Exemple et direct |
 | 2 | Taux d'accès, places, vœux, profil des admis (bac, mention, boursiers, filles, académie) | ✅ Exemple et direct |
 | 3 | Insertion : emploi à 6/12/18/30 mois, salaire médian, emploi stable, poursuite d'études | ✅ Exemple · ✅ direct pour BUT, licences et écoles d'ingénieurs (niveau national) |
+| + | Recherche « après un Bac+2 » : licences professionnelles (hors Parcoursup), avec insertion réelle par université (InserSup) | ✅ direct · instantané réel si l'API ne répond pas |
 | 4 | Comparateur de 2 ou 3 formations, sans désigner de « gagnant » | ✅ |
 | + | Niveau à la sortie (Bac+X et niveau du cadre national des certifications) dans la liste, la fiche et le comparateur | ✅ Exemple et direct |
 | + | Poursuite d'études : taux InserSup, poursuites habituelles du diplôme (repères, pas des statistiques) et, pour les licences et BUT, entrée en master dans la discipline proche (MonMaster 2025, réel) | ✅ Exemple et direct |
@@ -101,6 +102,8 @@ Tous les champs lus par la page existent dans ces deux jeux. Dans InserSup, les 
 **Ce qui distingue le prototype** : les trois questions (puis-je entrer ? trouverai-je un emploi ? pour quel salaire ?) sont réunies sur une fiche, chaque chiffre est relié à sa source publique, et l'outil n'a aucun lien commercial avec les établissements. Si le service devient payant pour les familles, ce modèle préserve sa neutralité : il ne dépend d'aucune école.
 
 ## Limites connues
+
+- Licences pro : InserSup les publie au nom de l'université de rattachement (pas de l'IUT), sous la mention nationale (pas le nom local, par ex. « LP WAMN »), en majuscules sans accents. Aucun chiffre d'admission public. 100 lignes max par recherche.
 
 - MonMaster : totaux nationaux 2025 par discipline, intégrés dans la page (extraits le 1er novembre 2026). La discipline est déduite de l'intitulé. Les masters qui recrutent hors plateforme ne sont pas comptés. Le jeu ne dit pas de quelle spécialité de licence ou de BUT viennent les admis.
 - Jeux « Parcours et réussite en licence / DUT » écartés volontairement : ils portent sur la cohorte 2012 et sur les anciennes séries de bac (S, ES, L), qui n'existent plus.
