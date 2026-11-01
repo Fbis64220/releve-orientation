@@ -44,7 +44,7 @@ Le code source est dans `src/app.html`. `index.html` est généré par :
 | 3 | Insertion : emploi à 6/12/18/30 mois, salaire médian, emploi stable, poursuite d'études | ✅ Exemple · ✅ direct pour BUT, licences et écoles d'ingénieurs (niveau national) |
 | 4 | Comparateur de 2 ou 3 formations, sans désigner de « gagnant » | ✅ |
 | + | Niveau à la sortie (Bac+X et niveau du cadre national des certifications) dans la liste, la fiche et le comparateur | ✅ Exemple et direct |
-| + | Poursuite d'études : taux InserSup + poursuites habituelles du diplôme (repères, pas des statistiques) | ✅ Exemple et direct |
+| + | Poursuite d'études : taux InserSup, poursuites habituelles du diplôme (repères, pas des statistiques) et, pour les licences et BUT, entrée en master dans la discipline proche (MonMaster 2025, réel) | ✅ Exemple et direct |
 | 5 | Métiers associés (codes ROME) | ✅ Exemple · liste indicative en direct |
 
 Données manquantes : chaque absence est expliquée (secret statistique, diplôme trop récent, formation qui ne mène pas directement à l'emploi comme le PASS ou la CPGE, salaire non publié par InserJeunes).
@@ -57,6 +57,7 @@ Données manquantes : chaque absence est expliquée (secret statistique, diplôm
 |---|---|---|---|---|
 | `fr-esr-parcoursup` | Parcoursup 2025 : vœux de poursuite d'études et réponses des établissements | Licence Ouverte v2.0 (Etalab) | 9 mars 2026 | 14 252 |
 | `fr-esr-insersup` | Insertion professionnelle des diplômés (dispositif InserSup) | Licence Ouverte v2.0 (Etalab) | 29 juillet 2026 | 1 036 781 |
+| `fr-esr-mon_master` | MonMaster 2024 & 2025 : vœux et admissions en master | Licence Ouverte v2.0 (Etalab) | 4 décembre 2025 | 16 257 |
 
 Tous les champs lus par la page existent dans ces deux jeux. Dans InserSup, les promotions vont de 2019 à 2024 ; les salaires sont publiés à partir de la promotion 2022. InserJeunes et ONISEP n'ont pas pu être vérifiés : l'API ONISEP refuse les connexions venant de cet environnement cloud.
 
@@ -100,6 +101,9 @@ Tous les champs lus par la page existent dans ces deux jeux. Dans InserSup, les 
 **Ce qui distingue le prototype** : les trois questions (puis-je entrer ? trouverai-je un emploi ? pour quel salaire ?) sont réunies sur une fiche, chaque chiffre est relié à sa source publique, et l'outil n'a aucun lien commercial avec les établissements. Si le service devient payant pour les familles, ce modèle préserve sa neutralité : il ne dépend d'aucune école.
 
 ## Limites connues
+
+- MonMaster : totaux nationaux 2025 par discipline, intégrés dans la page (extraits le 1er novembre 2026). La discipline est déduite de l'intitulé. Les masters qui recrutent hors plateforme ne sont pas comptés. Le jeu ne dit pas de quelle spécialité de licence ou de BUT viennent les admis.
+- Jeux « Parcours et réussite en licence / DUT » écartés volontairement : ils portent sur la cohorte 2012 et sur les anciennes séries de bac (S, ES, L), qui n'existent plus.
 
 - Les données publiques donnent le **taux** de poursuite d'études, pas la **destination** (quel master, quelle école). Les poursuites affichées sont des repères généraux rédigés pour le prototype, à remplacer par les fiches ONISEP.
 - Le niveau Bac+X est déduit du type de formation (BUT, BTS, licence…). Pour les écoles de commerce et les « autres formations », il varie selon le programme.

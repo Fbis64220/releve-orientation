@@ -371,6 +371,11 @@ var SOURCES = {
     url: "https://www.inserjeunes.education.gouv.fr",
     licence: LO, millesime: "Sortants 2022", maj: null
   },
+  monmaster: {
+    nom: "MonMaster : vœux et admissions en master", producteur: "Ministère de l'Enseignement supérieur (SIES)",
+    url: "https://data.enseignementsup-recherche.gouv.fr/explore/dataset/fr-esr-mon_master/",
+    licence: LO, millesime: "Session 2025, toute la France", maj: "2025-12-04T08:00:00+00:00"
+  },
   niveaux: {
     nom: "Cadre national des certifications professionnelles", producteur: "décret n° 2019-14 du 8 janvier 2019",
     url: "https://www.legifrance.gouv.fr/loda/id/JORFTEXT000037964754",
@@ -477,6 +482,39 @@ var POURSUITES = {
   "École d'ingénieurs": ["Emploi direct dans la grande majorité des cas.", "Doctorat (3 ans) pour la recherche.", "Mastère spécialisé ou double diplôme."],
   "École de commerce": ["Après un bachelor : programme grande école ou master.", "Après un programme grande école : emploi direct le plus souvent."]
 };
+
+/* MonMaster 2025, totaux nationaux par discipline de master (extraits le 1er novembre 2026).
+   lg3 / lp3 / but3 : étudiants venant d'une 3e année de licence générale, de licence pro ou de BUT
+   qui ont accepté une place ; admis : total des acceptations ; places : capacités affichées. */
+var MONMASTER_2025 = {
+  "Administration économique et sociale": { lg3: 279, lp3: 10, but3: 29, admis: 408, places: 432, masters: 20 },
+  "Droit, sciences politiques": { lg3: 19470, lp3: 300, but3: 399, admis: 23979, places: 25254, masters: 1059 },
+  "Langues": { lg3: 4189, lp3: 31, but3: 36, admis: 6178, places: 8893, masters: 566 },
+  "Lettres, sciences du langage, arts": { lg3: 4968, lp3: 68, but3: 119, admis: 8132, places: 10356, masters: 426 },
+  "STAPS": { lg3: 2441, lp3: 36, but3: 37, admis: 2927, places: 3332, masters: 173 },
+  "Sciences de la vie, de la terre et de l'univers": { lg3: 6678, lp3: 279, but3: 607, admis: 9871, places: 11296, masters: 676 },
+  "Sciences fondamentales et applications": { lg3: 11193, lp3: 417, but3: 1998, admis: 16921, places: 22005, masters: 1199 },
+  "Sciences humaines et sociales": { lg3: 34417, lp3: 708, but3: 1266, admis: 51015, places: 63865, masters: 2610 },
+  "Sciences économiques, gestion": { lg3: 10513, lp3: 839, but3: 3428, admis: 19685, places: 24744, masters: 1127 }
+};
+/* Discipline de master la plus proche, d'après l'intitulé (ordre important). */
+var DISCIPLINES_MASTER = [
+  [/droit|juridi|science politique/, "Droit, sciences politiques"],
+  [/\baes\b|administration economique/, "Administration économique et sociale"],
+  [/staps|activites physiques|sport/, "STAPS"],
+  [/information-communication|communication|carrieres sociales|psycholog|sociolog|histoire|geograph|education|philosoph/, "Sciences humaines et sociales"],
+  [/biolog|sciences de la vie|terre/, "Sciences de la vie, de la terre et de l'univers"],
+  [/informatique|math|physique|chimie|electr|mecani|genie|reseaux|mesures|statisti|ingenier/, "Sciences fondamentales et applications"],
+  [/econom|gestion|commerc|management|comptab|logistique/, "Sciences économiques, gestion"],
+  [/langue|anglais|espagnol|allemand/, "Langues"],
+  [/lettres|arts|musique|cinema|langage/, "Lettres, sciences du langage, arts"]
+];
+function disciplineMaster(f) {
+  if (f.type !== "Licence" && f.type !== "BUT") return null;
+  var t = norm(f.intitule + " " + (f.specialite || ""));
+  for (var i = 0; i < DISCIPLINES_MASTER.length; i++) if (DISCIPLINES_MASTER[i][0].test(t)) return DISCIPLINES_MASTER[i][1];
+  return null;
+}
 
 /* Métiers indicatifs utilisés en mode direct (repérés par mot-clé). */
 var METIERS_PAR_MOT = [
@@ -833,7 +871,22 @@ function renderSheet(focus) {
   html += '<p class="scope">Les données publiques ne disent pas <b>vers quelles formations</b> partent ces diplômés. Voici les poursuites habituelles prévues par les règles nationales de ce diplôme :</p>' +
     (pistes ? '<ul class="paths">' + pistes.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + '</ul>'
             : '<p class="missing">' + ICON_INFO + '<span>Pas de repères pour ce type de formation. Consultez la fiche Parcoursup officielle.</span></p>') +
-    '<p class="src">Repères généraux rédigés pour ce prototype, à relier aux fiches ONISEP : ce ne sont pas des statistiques.</p></section>';
+    '<p class="src">Repères généraux rédigés pour ce prototype, à relier aux fiches ONISEP : ce ne sont pas des statistiques.</p>';
+  var disc = disciplineMaster(f), mm = disc && MONMASTER_2025[disc];
+  if (mm) {
+    var deMonType = f.type === "BUT" ? mm.but3 : mm.lg3;
+    html += '<h4 style="margin:6px 0 0;font-family:var(--font-display);font-size:1rem">Entrer en master : « ' + esc(disc) + ' »</h4>' +
+      '<div class="kpis">' +
+        '<div class="kpi"><span class="v">' + int.format(mm.places) + '</span><span class="l">places dans ' + int.format(mm.masters) + ' masters</span></div>' +
+        '<div class="kpi"><span class="v">' + int.format(mm.admis) + '</span><span class="l">étudiants admis au total</span></div>' +
+        '<div class="kpi"><span class="v">' + pct(100 * mm.lg3 / mm.admis) + '</span><span class="l">venaient d\'une licence générale</span></div>' +
+        '<div class="kpi"><span class="v">' + pct(100 * mm.but3 / mm.admis) + '</span><span class="l">venaient d\'un BUT</span></div>' +
+      '</div>' +
+      '<p class="plain">En 2025, <strong>' + int.format(deMonType) + '</strong> étudiants sortant ' + (f.type === "BUT" ? "d'un BUT" : "d'une licence générale") + ' ont accepté une place dans un master de cette discipline, en France.</p>' +
+      '<p class="scope">Discipline choisie d\'après l\'intitulé de la formation. Seules les admissions passées par la plateforme MonMaster sont comptées.</p>' +
+      srcLine("monmaster", f, false);
+  }
+  html += '</section>';
 
   /* Métiers */
   html += '<section class="block" aria-labelledby="b-met"><div class="block-title"><h3 id="b-met">Métiers visés</h3></div>';
