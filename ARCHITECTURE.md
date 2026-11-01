@@ -22,7 +22,8 @@ Une seule page web statique, sans serveur ni compilation. Le navigateur lit les 
 │   ├─ Adaptateur « exemple » : SAMPLE (13 formations)       │
 │   ├─ Adaptateur « direct »  : API Opendatasoft v2.1 ───────┼──► data.enseignementsup-recherche.gouv.fr
 │   │     mapLive() normalise un enregistrement Parcoursup   │     /api/explore/v2.1/catalog/datasets/
-│   │     vers le même modèle que SAMPLE                     │     fr-esr-parcoursup/records
+│   │     loadInsertion() ajoute la ligne InserSup nationale │     fr-esr-parcoursup et fr-esr-insersup
+│   │     du même diplôme (à l'ouverture de la fiche)        │
 │   └─ Rendu : renderResults / renderSheet / renderCompare   │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -47,7 +48,8 @@ Une valeur absente vaut `null` : l'interface affiche alors « non disponible » 
 
 1. Au chargement, la page affiche le jeu d'exemple : une fiche ouverte et deux formations dans le comparateur. L'écran est donc rempli dès l'arrivée.
 2. En parallèle, `probeLive()` interroge le catalogue Parcoursup (délai max. 6 s). Si l'API répond, le bouton « Parcoursup en direct » s'active et la date de mise à jour (`metas.default.modified`) alimente les mentions de source.
-3. En mode direct, une recherche appelle `records?where="<texte>"&limit=30`. Une erreur ou un délai dépassé affiche un message clair, puis on revient au jeu d'exemple.
+3. En mode direct, une recherche appelle `records?where="<texte>" AND fili in (...)&limit=30`. Une erreur ou un délai dépassé affiche un message clair, puis on revient au jeu d'exemple.
+4. À l'ouverture d'une fiche réelle, `loadInsertion()` interroge InserSup (ligne « National » du même type de diplôme et du même intitulé), met le résultat en cache et complète la fiche. Pendant le chargement, la fiche l'indique ; en cas d'échec, elle explique pourquoi.
 
 ## Choix techniques
 
