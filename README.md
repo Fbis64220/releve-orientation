@@ -43,6 +43,8 @@ Le code source est dans `src/app.html`. `index.html` est généré par :
 | 2 | Taux d'accès, places, vœux, profil des admis (bac, mention, boursiers, filles, académie) | ✅ Exemple et direct |
 | 3 | Insertion : emploi à 6/12/18/30 mois, salaire médian, emploi stable, poursuite d'études | ✅ Exemple · ✅ direct pour BUT, licences et écoles d'ingénieurs (niveau national) |
 | 4 | Comparateur de 2 ou 3 formations, sans désigner de « gagnant » | ✅ |
+| + | Niveau à la sortie (Bac+X et niveau du cadre national des certifications) dans la liste, la fiche et le comparateur | ✅ Exemple et direct |
+| + | Poursuite d'études : taux InserSup + poursuites habituelles du diplôme (repères, pas des statistiques) | ✅ Exemple et direct |
 | 5 | Métiers associés (codes ROME) | ✅ Exemple · liste indicative en direct |
 
 Données manquantes : chaque absence est expliquée (secret statistique, diplôme trop récent, formation qui ne mène pas directement à l'emploi comme le PASS ou la CPGE, salaire non publié par InserJeunes).
@@ -98,6 +100,9 @@ Tous les champs lus par la page existent dans ces deux jeux. Dans InserSup, les 
 **Ce qui distingue le prototype** : les trois questions (puis-je entrer ? trouverai-je un emploi ? pour quel salaire ?) sont réunies sur une fiche, chaque chiffre est relié à sa source publique, et l'outil n'a aucun lien commercial avec les établissements. Si le service devient payant pour les familles, ce modèle préserve sa neutralité : il ne dépend d'aucune école.
 
 ## Limites connues
+
+- Les données publiques donnent le **taux** de poursuite d'études, pas la **destination** (quel master, quelle école). Les poursuites affichées sont des repères généraux rédigés pour le prototype, à remplacer par les fiches ONISEP.
+- Le niveau Bac+X est déduit du type de formation (BUT, BTS, licence…). Pour les écoles de commerce et les « autres formations », il varie selon le programme.
 
 - Chiffres d'exemple **fictifs**. Les établissements nommés sont inventés.
 - En mode direct, l'insertion est nationale (par diplôme), pas propre à l'établissement. BTS, CPGE, IFSI et PASS n'ont pas d'insertion réelle affichée.

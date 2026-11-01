@@ -167,6 +167,11 @@ ul.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .emp .val { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--font-data); font-size: .85rem; font-weight: 600; }
 .emp-x { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; max-width: 420px; font-size: .8rem; color: var(--muted); text-align: center; }
 
+/* Niveau et poursuite */
+.level { display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: .95rem; color: var(--ink-2); }
+.level b { font-family: var(--font-data); font-size: 1.05rem; color: var(--accent-ink); background: var(--accent); padding: 2px 10px; border-radius: 4px; }
+ul.paths { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 65ch; }
+
 /* Métiers */
 ul.jobs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
 ul.jobs li { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
@@ -374,6 +379,12 @@ var SOURCES = {
     url: "https://www.inserjeunes.education.gouv.fr",
     licence: LO, millesime: "Sortants 2022", maj: null
   },
+  niveaux: {
+    nom: "Cadre national des certifications professionnelles", producteur: "décret n° 2019-14 du 8 janvier 2019",
+    url: "https://www.legifrance.gouv.fr/loda/id/JORFTEXT000037964754",
+    licence: { nom: "texte officiel, réutilisation libre", url: "https://www.legifrance.gouv.fr" },
+    millesime: "Niveaux 5 (Bac+2), 6 (Bac+3) et 7 (Bac+5)", maj: null, dateTexte: "texte en vigueur"
+  },
   onisep: {
     nom: "ONISEP : fiches métiers (codes ROME)", producteur: "ONISEP",
     url: "https://opendata.onisep.fr",
@@ -448,6 +459,33 @@ var SAMPLE = [
    metiers:[{c:"C1206",n:"Conseiller ou conseillère bancaire"},{c:"M1403",n:"Chargé ou chargée d'études économiques"},{c:"M1204",n:"Contrôleur ou contrôleuse de gestion"}] }
 ];
 
+/* Niveau de sortie par type de formation (Bac+X et niveau du cadre national, 5 = Bac+2, 6 = Bac+3, 7 = Bac+5). */
+var NIVEAUX = {
+  "BUT": { bac: "Bac+3", cadre: 6, detail: "Diplôme en 3 ans, qui confère le grade de licence." },
+  "BTS": { bac: "Bac+2", cadre: 5, detail: "Diplôme en 2 ans." },
+  "Licence": { bac: "Bac+3", cadre: 6, detail: "Diplôme en 3 ans (L1, L2, L3)." },
+  "PASS": { bac: "1 an après le bac", cadre: null, detail: "Année d'accès qui ne délivre pas de diplôme seule. Elle ouvre vers des études longues : Bac+5 (sage-femme, kinésithérapeute) à Bac+9 et plus (médecin)." },
+  "CPGE": { bac: "Bac+2", cadre: null, detail: "Pas de diplôme à la sortie, mais jusqu'à 120 crédits ECTS. Elle prépare aux concours d'écoles de niveau Bac+5." },
+  "IFSI": { bac: "Bac+3", cadre: 6, detail: "Diplôme d'État en 3 ans, qui confère le grade de licence." },
+  "École d'ingénieurs": { bac: "Bac+5", cadre: 7, detail: "Diplôme d'ingénieur, qui confère le grade de master." },
+  "École de commerce": { bac: "Bac+3 à Bac+5", cadre: null, detail: "Selon le programme : bachelor (Bac+3) ou programme grande école (Bac+5)." },
+  "Formation du social": { bac: "Bac+2 à Bac+3", cadre: null, detail: "Selon le diplôme d'État préparé." }
+};
+var NIVEAU_INCONNU = { bac: "Niveau variable", cadre: null, detail: "Le niveau dépend de la formation : consultez sa fiche Parcoursup officielle." };
+function niveau(f) { return NIVEAUX[f.type] || NIVEAU_INCONNU; }
+
+/* Poursuites d'études habituelles : repères tirés des règles nationales des diplômes, pas des statistiques. */
+var POURSUITES = {
+  "BUT": ["Entrée dans la vie active : le BUT est conçu pour ça.", "Master à l'université, sur dossier.", "École d'ingénieurs ou de commerce, par les admissions parallèles."],
+  "BTS": ["Licence professionnelle en 1 an (Bac+3).", "Bachelor, ou entrée en 3e année de BUT selon les places.", "Classe prépa ATS pour viser une école d'ingénieurs."],
+  "Licence": ["Master (Bac+5), dont le master MEEF pour devenir professeur.", "Concours de la fonction publique de catégorie A.", "Écoles (journalisme, commerce, instituts d'études politiques) sur concours ou dossier."],
+  "PASS": ["Médecine, maïeutique, odontologie, pharmacie ou kinésithérapie, si l'étudiant est admis en fin d'année.", "Sinon, 2e année de la licence choisie en option, avec une seconde chance par une LAS."],
+  "CPGE": ["École d'ingénieurs, par concours.", "Sans école, 3e année de licence grâce aux crédits ECTS validés."],
+  "IFSI": ["Spécialisations : bloc opératoire (IBODE), anesthésie (IADE), puériculture.", "Master d'infirmier en pratique avancée (IPA).", "Cadre de santé, après plusieurs années d'exercice."],
+  "École d'ingénieurs": ["Emploi direct dans la grande majorité des cas.", "Doctorat (3 ans) pour la recherche.", "Mastère spécialisé ou double diplôme."],
+  "École de commerce": ["Après un bachelor : programme grande école ou master.", "Après un programme grande école : emploi direct le plus souvent."]
+};
+
 /* Métiers indicatifs utilisés en mode direct (repérés par mot-clé). */
 var METIERS_PAR_MOT = [
   [/informati|numérique|numerique/i, ["informatique"]],
@@ -480,7 +518,7 @@ var dateFr = function (iso) { try { return new Date(iso).toLocaleDateString("fr-
 function srcLine(key, f, exemple) {
   var s = SOURCES[key];
   if (exemple === undefined) exemple = f.origine === "exemple";
-  var date = exemple ? "valeurs d'exemple" : (s.maj ? "jeu mis à jour le " + dateFr(s.maj) : "date de mise à jour : voir le jeu de données");
+  var date = exemple ? "valeurs d'exemple" : (s.dateTexte || (s.maj ? "jeu mis à jour le " + dateFr(s.maj) : "date de mise à jour : voir le jeu de données"));
   return '<p class="src">' + (exemple ? '<span class="badge-ex">EXEMPLE</span>' : "") +
     '<span>Source : <a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.nom) + '</a>, ' + esc(s.producteur) + '</span>' +
     '<span>' + esc(s.millesime) + ' · ' + esc(date) + '</span>' +
@@ -689,7 +727,7 @@ function renderResults() {
     return '<li class="res" ' + (sel ? 'aria-current="true"' : "") + '>' +
       '<button type="button" class="open" data-i="' + i + '" aria-label="Voir la fiche : ' + esc(f.intitule + ", " + f.etab) + '">' +
         '<span class="t">' + esc(f.intitule) + (f.origine === "exemple" ? ' <span class="badge-ex">EXEMPLE</span>' : "") + '</span>' +
-        '<span class="e">' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</span>' +
+        '<span class="e"><b>' + esc(niveau(f).bac) + '</b> · ' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</span>' +
         '<span class="k"><span>Accès <b>' + (isNum(f.ps.acces) ? Math.round(f.ps.acces) + NBSP + "%" : "n.d.") + '</b></span>' +
         '<span>Emploi 12 mois <b>' + (isNum(emp) ? Math.round(emp) + NBSP + "%" : nd) + '</b></span>' +
         '<span>Salaire <b>' + (f.ins && isNum(f.ins.salaire) ? eur.format(f.ins.salaire) : nd) + '</b></span></span>' +
@@ -744,12 +782,13 @@ function renderSheet(focus) {
     '<p class="eyebrow">' + esc(f.type) + '</p>' +
     '<h2 id="fiche-title" tabindex="-1">' + esc(f.intitule) + '</h2>' +
     '<p style="color:var(--ink-2)">' + esc(f.etab) + (f.ville ? " · " + esc(f.ville) : "") + '</p>' +
+    '<p class="level"><b>' + esc(niveau(f).bac) + '</b><span>' + (niveau(f).cadre ? "niveau " + niveau(f).cadre + " du cadre national · " : "") + esc(niveau(f).detail) + '</span></p>' +
     '<div class="meta">' + (f.origine === "exemple" ? '<span class="badge-ex">EXEMPLE</span>' : '<span class="badge">Données réelles · session ' + esc(f.session || "") + '</span>') +
       '<span class="badge">' + esc(f.statut) + '</span>' +
       (f.selective === true ? '<span class="badge">Formation sélective</span>' : f.selective === false ? '<span class="badge">Formation non sélective</span>' : "") + '</div>' +
     '<div class="actions"><button type="button" class="btn small" id="sheet-cmp" aria-pressed="' + inCompare(f) + '">' + (inCompare(f) ? "✓ Dans le comparateur" : "+ Ajouter au comparateur") + '</button>' +
       (f.lien ? '<a class="btn ghost small" style="display:inline-flex;align-items:center;text-decoration:none" href="' + esc(f.lien) + '" target="_blank" rel="noopener">Fiche Parcoursup officielle</a>' : "") + '</div>' +
-    '</header>';
+    srcLine("niveaux", f, false) + '</header>';
 
   /* Admission */
   html += '<section class="block" aria-labelledby="b-adm"><div class="block-title"><h3 id="b-adm">Chances d\'admission et profil des admis</h3></div>' +
@@ -783,13 +822,26 @@ function renderSheet(focus) {
         '<div class="kpi"><span class="v big">' + (isNum(ins.salaire) ? eur.format(ins.salaire) : ND(ins.salaireRaison)) + '</span><span class="l">salaire net mensuel médian, temps plein' + (isNum(ins.salaire) ? "" : '<br>' + esc(ins.salaireRaison || "")) + '</span></div>' +
         '<div class="kpi"><span class="v">' + pct(ins.emploi && ins.emploi[12], "Masqué ou non publié") + '</span><span class="l">en emploi salarié à 12 mois</span></div>' +
         '<div class="kpi"><span class="v">' + pct(ins.stable, "Masqué ou non publié") + '</span><span class="l">des emplois sont stables (CDI, fonctionnaire)</span></div>' +
-        '<div class="kpi"><span class="v">' + pct(ins.poursuite) + '</span><span class="l">poursuivent leurs études</span></div>' +
       '</div>' + empChart(ins.emploi || {}) +
       (isNum(ins.salaire) ? '<p class="plain">La moitié des diplômés en emploi à temps plein gagne moins de <strong>' + eur.format(ins.salaire) + '</strong> net par mois, l\'autre moitié gagne plus.</p>' : "") +
       (ins.note ? '<p class="scope">' + ICON_INFO + ' ' + esc(ins.note) + '</p>' : "") +
       srcLine(ins.src, f, !ins.reel);
   }
   html += '</section>';
+
+  /* Poursuite d'études */
+  var pistes = POURSUITES[f.type];
+  html += '<section class="block" aria-labelledby="b-pour"><div class="block-title"><h3 id="b-pour">Poursuite d\'études</h3></div>';
+  if (ins && isNum(ins.poursuite)) {
+    html += '<div class="kpis"><div class="kpi"><span class="v">' + pct(ins.poursuite) + '</span><span class="l">des diplômés poursuivent leurs études</span></div></div>' +
+      '<p class="scope">Périmètre : <b>' + esc(ins.perimetre) + '</b> · ' + esc(ins.promo) + '</p>' + srcLine(ins.src, f, !ins.reel);
+  } else {
+    html += '<p class="missing">' + ICON_INFO + '<span>Taux de poursuite d\'études non publié pour cette formation.</span></p>';
+  }
+  html += '<p class="scope">Les données publiques ne disent pas <b>vers quelles formations</b> partent ces diplômés. Voici les poursuites habituelles prévues par les règles nationales de ce diplôme :</p>' +
+    (pistes ? '<ul class="paths">' + pistes.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + '</ul>'
+            : '<p class="missing">' + ICON_INFO + '<span>Pas de repères pour ce type de formation. Consultez la fiche Parcoursup officielle.</span></p>') +
+    '<p class="src">Repères généraux rédigés pour ce prototype, à relier aux fiches ONISEP : ce ne sont pas des statistiques.</p></section>';
 
   /* Métiers */
   html += '<section class="block" aria-labelledby="b-met"><div class="block-title"><h3 id="b-met">Métiers visés</h3></div>';
@@ -851,6 +903,7 @@ function renderCompare(focus) {
   var cell = function (v) { return '<td class="n">' + v + '</td>'; };
   var rows = [
     ["Établissement", function (f) { return '<td>' + esc(f.etab) + (f.ville ? ", " + esc(f.ville) : "") + '</td>'; }],
+    ["Niveau à la sortie", function (f) { return '<td><b>' + esc(niveau(f).bac) + '</b></td>'; }],
     ["Statut", function (f) { return '<td>' + esc(f.statut) + '</td>'; }],
     ["Taux d'accès", function (f) { return cell(pct(f.ps.acces)); }],
     ["Candidatures par place", function (f) { return cell(isNum(f.ps.voeux) && f.ps.capa ? Math.round(f.ps.voeux / f.ps.capa) : ND()); }],
